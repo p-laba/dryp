@@ -235,20 +235,20 @@ function LookbookContent() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 border border-purple-700/30 rounded-xl p-4">
             <div className="text-xs text-purple-400 uppercase tracking-wider mb-1">Gender</div>
-            <div className="font-bold text-lg capitalize">{lookbook.vibe.gender}</div>
-            <div className="text-xs text-gray-500">{Math.round(lookbook.vibe.gender_confidence * 100)}% confidence</div>
+            <div className="font-bold text-lg capitalize">{lookbook.vibe.gender || 'Unknown'}</div>
+            <div className="text-xs text-gray-500">{Math.round((lookbook.vibe.gender_confidence || 0) * 100)}% confidence</div>
           </div>
           <div className="bg-gradient-to-br from-pink-900/40 to-pink-800/20 border border-pink-700/30 rounded-xl p-4">
             <div className="text-xs text-pink-400 uppercase tracking-wider mb-1">Archetype</div>
-            <div className="font-bold text-lg capitalize">{lookbook.vibe.profession_archetype.replace('-', ' ')}</div>
+            <div className="font-bold text-lg capitalize">{(lookbook.vibe.profession_archetype || 'creative').replace('-', ' ')}</div>
           </div>
           <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/30 rounded-xl p-4">
             <div className="text-xs text-blue-400 uppercase tracking-wider mb-1">Age Range</div>
-            <div className="font-bold text-lg">{lookbook.vibe.age_range}</div>
+            <div className="font-bold text-lg">{lookbook.vibe.age_range || '25-35'}</div>
           </div>
           <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/30 rounded-xl p-4">
             <div className="text-xs text-green-400 uppercase tracking-wider mb-1">Budget Tier</div>
-            <div className="font-bold text-lg capitalize">{lookbook.style.budget_tier || 'Mixed'}</div>
+            <div className="font-bold text-lg capitalize">{lookbook.style?.budget_tier || 'Mixed'}</div>
           </div>
         </div>
 
