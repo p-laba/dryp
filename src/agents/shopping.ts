@@ -2,6 +2,7 @@ import { BaseAgent, AgentResult } from './base';
 import { StyleRecommendation } from './style';
 import { VibeAnalysis } from './vibe';
 import { getDb } from '@/lib/mongodb';
+import { ObjectId, WithId, Document } from 'mongodb';
 
 export interface ProductRecommendation {
   _id: string;
@@ -62,16 +63,19 @@ export class ShoppingAgent extends BaseAgent<
       genderFilter.push('male', 'female');
     }
 
-    // Build archetype query
+    // Build archetype query with defensive checks
+    const primaryArchetype = style?.primary_archetype || 'minimalist';
+    const secondaryArchetype = style?.secondary_archetype || 'streetwear';
+
     const archetypeQuery = [
-      style.primary_archetype.toLowerCase().replace(/ /g, '-'),
-      style.secondary_archetype.toLowerCase().replace(/ /g, '-'),
+      primaryArchetype.toLowerCase().replace(/ /g, '-'),
+      secondaryArchetype.toLowerCase().replace(/ /g, '-'),
     ];
 
     this.log(`Searching for: ${archetypeQuery.join(', ')} | Gender: ${detectedGender} (${genderFilter.join(', ')})`);
 
     // STEP 1: Find gender-specific products matching archetypes FIRST
-    let products: Record<string, unknown>[] = [];
+    let products: WithId<Document>[] = [];
 
     if (detectedGender !== 'unknown') {
       // First priority: gender-specific products matching archetypes
@@ -147,14 +151,14 @@ export class ShoppingAgent extends BaseAgent<
         const reason = await this.generateMatchReason(product, vibe, style);
 
         return {
-          _id: product._id.toString(),
-          name: product.name,
-          brand: product.brand,
-          category: product.category,
-          price: product.price,
-          description: product.description,
-          image_url: product.image_url,
-          buy_link: product.buy_link,
+          _id: product._id?.toString() || '',
+          name: (product.name as string) || 'Unknown Product',
+          brand: (product.brand as string) || 'Unknown Brand',
+          category: (product.category as string) || 'other',
+          price: (product.price as number) || 0,
+          description: (product.description as string) || '',
+          image_url: (product.image_url as string) || '',
+          buy_link: (product.buy_link as string) || '',
           match_reason: reason,
           match_score: score.total,
           gender_match: score.genderMatch,
@@ -216,8 +220,8 @@ export class ShoppingAgent extends BaseAgent<
 
     // Archetype match
     const productArchetypes = (product.style_archetypes as string[]) || [];
-    const primaryMatch = style.primary_archetype.toLowerCase().replace(/ /g, '-');
-    const secondaryMatch = style.secondary_archetype.toLowerCase().replace(/ /g, '-');
+    const primaryMatch = (style?.primary_archetype || 'minimalist').toLowerCase().replace(/ /g, '-');
+    const secondaryMatch = (style?.secondary_archetype || 'streetwear').toLowerCase().replace(/ /g, '-');
 
     if (productArchetypes.includes(primaryMatch)) {
       score += 20;
@@ -227,8 +231,8 @@ export class ShoppingAgent extends BaseAgent<
     }
 
     // Color match
-    const productColors = ((product.colors as string[]) || []).map(c => c.toLowerCase());
-    const bestColors = vibe.color_profile?.best_colors.map(c => c.toLowerCase()) || [];
+    const productColors = ((product.colors as string[]) || []).filter(c => c && typeof c === 'string').map(c => c.toLowerCase());
+    const bestColors = (vibe.color_profile?.best_colors || []).filter(c => c && typeof c === 'string').map(c => c.toLowerCase());
 
     for (const color of productColors) {
       for (const best of bestColors) {
@@ -281,18 +285,25 @@ export class ShoppingAgent extends BaseAgent<
     vibe: VibeAnalysis,
     style: StyleRecommendation
   ): Promise<string> {
-    // Include more context for better reasons
-    const genderContext = vibe.gender !== 'unknown' ? `for a ${vibe.gender}` : '';
-    const professionContext = vibe.profession_archetype !== 'general'
-      ? `in the ${vibe.profession_archetype} space`
+    // Include more context for better reasons - with null safety
+    const gender = vibe?.gender || 'unknown';
+    const professionArchetype = vibe?.profession_archetype || 'general';
+    const energy = vibe?.energy || 'unique';
+    const primaryArchetype = style?.primary_archetype || 'minimalist';
+    const productName = product?.name || 'this item';
+    const productBrand = product?.brand || 'this brand';
+
+    const genderContext = gender !== 'unknown' ? `for a ${gender}` : '';
+    const professionContext = professionArchetype !== 'general'
+      ? `in the ${professionArchetype} space`
       : '';
 
-    const prompt = `In exactly 10-15 words, explain why "${product.name}" by ${product.brand} is perfect ${genderContext} ${professionContext} with "${vibe.energy}" energy and ${style.primary_archetype} style.
+    const prompt = `In exactly 10-15 words, explain why "${productName}" by ${productBrand} is perfect ${genderContext} ${professionContext} with "${energy}" energy and ${primaryArchetype} style.
 
 Consider:
-- Their vibe: ${vibe.vibe_summary}
-- Season: ${vibe.seasonal_recommendations?.season || 'versatile'}
-- Color profile: ${vibe.color_profile?.subtype || 'flexible'}
+- Their vibe: ${vibe?.vibe_summary || 'unique style'}
+- Season: ${vibe?.seasonal_recommendations?.season || 'versatile'}
+- Color profile: ${vibe?.color_profile?.subtype || 'flexible'}
 
 Be specific, stylish, and slightly witty. Make it personal.`;
 
@@ -304,7 +315,7 @@ Be specific, stylish, and slightly witty. Make it personal.`;
       );
       return response.trim().replace(/"/g, '');
     } catch {
-      return `Perfect ${style.primary_archetype.toLowerCase()} pick for your ${vibe.aesthetic_keywords[0] || 'unique'} aesthetic.`;
+      return `Perfect ${(style?.primary_archetype || 'minimalist').toLowerCase()} pick for your ${vibe?.aesthetic_keywords?.[0] || 'unique'} aesthetic.`;
     }
   }
 
@@ -325,11 +336,12 @@ Be specific, stylish, and slightly witty. Make it personal.`;
       byCategory[cat].push(p);
     }
 
-    const occasions = vibe.profession_archetype === 'tech-founder'
+    const archetype = vibe?.profession_archetype || 'general';
+    const occasions = archetype === 'tech-founder'
       ? ['pitch meeting', 'casual friday', 'conference']
-      : vibe.profession_archetype === 'developer'
+      : archetype === 'developer'
         ? ['work from home', 'team standup', 'hackathon']
-        : vibe.profession_archetype === 'creative'
+        : archetype === 'creative'
           ? ['gallery opening', 'studio day', 'client meeting']
           : ['everyday', 'weekend', 'special occasion'];
 
@@ -353,7 +365,7 @@ Be specific, stylish, and slightly witty. Make it personal.`;
           name: `${occasion.charAt(0).toUpperCase() + occasion.slice(1)} Look`,
           occasion,
           products: selected,
-          styling_tip: `Perfect for ${occasion} - ${style.style_notes.split('.')[0]}.`,
+          styling_tip: `Perfect for ${occasion} - ${(style?.style_notes || 'curated for your vibe').split('.')[0]}.`,
         });
       }
     }

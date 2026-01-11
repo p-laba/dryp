@@ -191,7 +191,45 @@ Create a cohesive style identity that feels authentic to who they are.`;
         jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '');
       }
 
+      // Try to extract JSON if it's wrapped in other text
+      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[0];
+      }
+
       const style = JSON.parse(jsonStr) as StyleRecommendation;
+
+      // Validate ALL fields and provide defaults
+      if (!style.primary_archetype) {
+        style.primary_archetype = 'Minimalist';
+      }
+      if (!style.secondary_archetype) {
+        style.secondary_archetype = 'Quiet Luxury';
+      }
+      if (!style.color_palette || style.color_palette.length === 0) {
+        style.color_palette = ['#000000', '#ffffff', '#808080', '#1a1a1a', '#2d2d2d'];
+      }
+      if (!style.style_notes) {
+        style.style_notes = 'Clean, versatile pieces that match your energy.';
+      }
+      if (!style.avoid || style.avoid.length === 0) {
+        style.avoid = ['Overly loud patterns', 'Ill-fitting clothes', 'Fast fashion'];
+      }
+      if (!style.gender_specific_notes) {
+        style.gender_specific_notes = 'Focus on well-fitted basics that flatter your frame.';
+      }
+      if (!style.profession_style_tips) {
+        style.profession_style_tips = professionStyle?.description || 'Versatile style that works for any occasion.';
+      }
+      if (!style.seasonal_adjustments) {
+        style.seasonal_adjustments = 'Layer pieces that can adapt to temperature changes.';
+      }
+      if (!style.budget_tier) {
+        style.budget_tier = 'mixed';
+      }
+      if (!style.signature_pieces || style.signature_pieces.length === 0) {
+        style.signature_pieces = professionStyle?.signature_items || ['quality basics', 'versatile jacket', 'classic footwear'];
+      }
 
       // Ensure color_season_palette exists if we have color profile
       if (vibe.color_profile && !style.color_season_palette) {
@@ -201,7 +239,7 @@ Create a cohesive style identity that feels authentic to who they are.`;
       this.log(`Style matched: ${style.primary_archetype} + ${style.secondary_archetype} (${style.budget_tier})`);
       return { success: true, data: style };
     } catch (error) {
-      this.log(`Error: ${error}`);
+      this.log(`Error parsing style response: ${error}`);
       // Enhanced fallback
       return {
         success: true,
@@ -245,8 +283,11 @@ Create a cohesive style identity that feels authentic to who they are.`;
       'fuchsia': '#FF00FF', 'turquoise': '#40E0D0', 'cobalt blue': '#0047AB',
     };
 
+    if (!colorNames || !Array.isArray(colorNames) || colorNames.length === 0) {
+      return ['#808080', '#000000', '#FFFFFF', '#000080']; // Default fallback colors
+    }
     return colorNames.slice(0, 4).map(name => {
-      const lower = name.toLowerCase();
+      const lower = (name || '').toLowerCase();
       // Find partial match
       for (const [key, hex] of Object.entries(colorMap)) {
         if (lower.includes(key) || key.includes(lower)) {

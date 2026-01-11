@@ -74,7 +74,7 @@ export async function getWeatherForLocation(location: string): Promise<WeatherDa
 
 // Smart defaults based on location keywords
 function getDefaultWeather(location: string): WeatherData {
-  const loc = location.toLowerCase();
+  const loc = (location || '').toLowerCase();
   const month = new Date().getMonth();
 
   // Determine climate zone
@@ -192,7 +192,7 @@ export function getSeasonalRecommendations(weather: WeatherData): SeasonalRecomm
   }
 
   // Condition-based adjustments
-  if (condition.toLowerCase().includes('rain')) {
+  if ((condition || '').toLowerCase().includes('rain')) {
     fabric_suggestions = [...fabric_suggestions, 'water-resistant nylon', 'waxed cotton'];
     style_notes += ' Consider waterproof options and rubber-soled shoes.';
   }

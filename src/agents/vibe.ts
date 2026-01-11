@@ -233,23 +233,37 @@ Based on name, bio, writing style, and content, provide demographic analysis.`;
       if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '');
       }
-      const data = JSON.parse(jsonStr);
+      const rawData = JSON.parse(jsonStr);
 
-      // Validate and normalize
+      // Validate and normalize with defaults for ALL fields
       const validGenders = ['male', 'female', 'non-binary', 'unknown'];
-      if (!validGenders.includes(data.gender)) {
-        data.gender = 'unknown';
-      }
+      const gender = validGenders.includes(rawData.gender) ? rawData.gender : 'unknown';
 
       const validArchetypes: ProfessionArchetype[] = [
         'tech-founder', 'developer', 'creative', 'finance', 'influencer',
         'academic', 'artist', 'entrepreneur', 'athlete', 'general'
       ];
-      if (!validArchetypes.includes(data.profession_archetype)) {
-        data.profession_archetype = 'general';
-      }
+      const profession_archetype = validArchetypes.includes(rawData.profession_archetype)
+        ? rawData.profession_archetype
+        : 'general';
 
-      data.gender_confidence = Math.min(1, Math.max(0, data.gender_confidence || 0.5));
+      const gender_confidence = Math.min(1, Math.max(0, rawData.gender_confidence || 0.5));
+
+      // Ensure all fields have defaults
+      const data = {
+        gender,
+        gender_confidence,
+        age_range: rawData.age_range || '25-34',
+        profession_archetype,
+        location_inferred: rawData.location_inferred || null,
+        inferred_appearance: {
+          hair_color_guess: rawData.inferred_appearance?.hair_color_guess || null,
+          eye_color_guess: rawData.inferred_appearance?.eye_color_guess || null,
+          skin_tone_guess: rawData.inferred_appearance?.skin_tone_guess || null,
+          undertone_guess: rawData.inferred_appearance?.undertone_guess || 'neutral',
+          style_era_preference: rawData.inferred_appearance?.style_era_preference || 'modern',
+        },
+      };
 
       return { success: true, data };
     } catch (error) {
