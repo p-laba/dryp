@@ -96,49 +96,42 @@ interface Lookbook {
   };
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, index }: { product: Product; index: number }) {
   return (
-    <div className="bg-gray-800 rounded-xl overflow-hidden group hover:ring-2 hover:ring-purple-500 transition-all">
-      <div className="aspect-square bg-gray-700 relative overflow-hidden">
+    <div
+      className="bg-white/[0.08] border border-white/20 rounded-2xl overflow-hidden group card-hover fade-in backdrop-blur-md"
+      style={{ animationDelay: `${index * 0.1}s`, opacity: 0 }}
+    >
+      <div className="aspect-[4/5] bg-black/30 relative overflow-hidden">
         <img
           src={product.image_url}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Product';
+            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x500?text=Product';
           }}
         />
-        <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-xs">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs text-white/80">
           {product.category}
         </div>
         {product.match_score && (
-          <div className="absolute top-2 left-2 bg-purple-600/90 px-2 py-1 rounded text-xs font-bold">
+          <div className="absolute top-3 left-3 bg-white text-black px-2.5 py-1 rounded-full text-xs font-semibold">
             {product.match_score}% match
           </div>
         )}
-        <div className="absolute bottom-2 left-2 flex gap-1">
-          {product.gender_match && (
-            <span className="bg-green-600/80 px-1.5 py-0.5 rounded text-xs">gender</span>
-          )}
-          {product.color_match && (
-            <span className="bg-blue-600/80 px-1.5 py-0.5 rounded text-xs">color</span>
-          )}
-          {product.season_appropriate && (
-            <span className="bg-orange-600/80 px-1.5 py-0.5 rounded text-xs">season</span>
-          )}
-        </div>
       </div>
-      <div className="p-4">
-        <div className="text-xs text-purple-400 mb-1">{product.brand}</div>
-        <div className="font-semibold mb-2 line-clamp-1">{product.name}</div>
-        <div className="text-sm text-gray-400 mb-3 line-clamp-2">{product.match_reason}</div>
+      <div className="p-5">
+        <div className="text-xs text-purple-300/80 uppercase tracking-wider mb-2 font-medium">{product.brand}</div>
+        <div className="font-semibold text-white mb-2 line-clamp-1 text-lg">{product.name}</div>
+        <div className="text-sm text-white/60 mb-5 line-clamp-2 leading-relaxed">{product.match_reason}</div>
         <div className="flex justify-between items-center">
-          <span className="text-xl font-bold">${product.price}</span>
+          <span className="text-xl font-bold text-white">${product.price}</span>
           <a
             href={product.buy_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors"
+            className="text-sm bg-white text-black hover:bg-purple-100 px-5 py-2.5 rounded-xl font-semibold transition-all btn-glow"
           >
             Shop
           </a>
@@ -178,10 +171,10 @@ function LookbookContent() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center gradient-bg">
         <div className="text-center">
-          <div className="text-4xl animate-bounce mb-4">DRIP</div>
-          <div className="animate-pulse">Loading your lookbook...</div>
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-[#444]">Loading your lookbook...</div>
         </div>
       </main>
     );
@@ -189,13 +182,12 @@ function LookbookContent() {
 
   if (!lookbook) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center gradient-bg">
         <div className="text-center">
-          <div className="text-4xl mb-4">:/</div>
-          <div className="text-gray-400 mb-4">Lookbook not found</div>
+          <div className="text-[#444] mb-6">Lookbook not found</div>
           <button
             onClick={() => router.push('/')}
-            className="text-purple-400 underline"
+            className="text-white bg-[#111] hover:bg-[#1a1a1a] px-6 py-3 rounded-xl transition-colors"
           >
             Go back
           </button>
@@ -204,304 +196,267 @@ function LookbookContent() {
     );
   }
 
-  const professionEmoji: Record<string, string> = {
-    'tech-founder': 'rocket',
-    'developer': 'computer',
-    'creative': 'art',
-    'finance': 'chart',
-    'influencer': 'sparkles',
-    'academic': 'books',
-    'artist': 'palette',
-    'entrepreneur': 'briefcase',
-    'athlete': 'running',
-    'general': 'person',
-  };
-
   return (
-    <main className="min-h-screen bg-black text-white p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="text-5xl mb-4 font-black tracking-tighter bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            DRIP
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            @{lookbook.handle}&apos;s Style Profile
-          </h1>
-          <p className="text-xl text-gray-400 italic">&quot;{lookbook.vibe.energy}&quot;</p>
-        </div>
+    <main className="min-h-screen bg-[#050505] text-white relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 dot-pattern opacity-30" />
+      <div className="absolute top-[-200px] left-1/4 w-[800px] h-[800px] bg-purple-500/20 rounded-full blur-[120px]" />
+      <div className="absolute top-[20%] right-[-100px] w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-100px] left-[10%] w-[600px] h-[600px] bg-blue-500/15 rounded-full blur-[100px]" />
 
-        {/* Profile Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 border border-purple-700/30 rounded-xl p-4">
-            <div className="text-xs text-purple-400 uppercase tracking-wider mb-1">Gender</div>
-            <div className="font-bold text-lg capitalize">{lookbook.vibe.gender || 'Unknown'}</div>
-            <div className="text-xs text-gray-500">{Math.round((lookbook.vibe.gender_confidence || 0) * 100)}% confidence</div>
-          </div>
-          <div className="bg-gradient-to-br from-pink-900/40 to-pink-800/20 border border-pink-700/30 rounded-xl p-4">
-            <div className="text-xs text-pink-400 uppercase tracking-wider mb-1">Archetype</div>
-            <div className="font-bold text-lg capitalize">{(lookbook.vibe.profession_archetype || 'creative').replace('-', ' ')}</div>
-          </div>
-          <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/30 rounded-xl p-4">
-            <div className="text-xs text-blue-400 uppercase tracking-wider mb-1">Age Range</div>
-            <div className="font-bold text-lg">{lookbook.vibe.age_range || '25-35'}</div>
-          </div>
-          <div className="bg-gradient-to-br from-green-900/40 to-green-800/20 border border-green-700/30 rounded-xl p-4">
-            <div className="text-xs text-green-400 uppercase tracking-wider mb-1">Budget Tier</div>
-            <div className="font-bold text-lg capitalize">{lookbook.style?.budget_tier || 'Mixed'}</div>
-          </div>
-        </div>
-
-        {/* Weather & Location (if available) */}
-        {lookbook.vibe.weather && (
-          <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-700/30 rounded-xl p-4 mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-cyan-400 uppercase tracking-wider mb-1">Location & Weather</div>
-                <div className="font-bold">{lookbook.vibe.weather.location}</div>
-                <div className="text-gray-400 text-sm">
-                  {lookbook.vibe.weather.temperature}C | {lookbook.vibe.weather.condition}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl">
-                  {lookbook.vibe.weather.condition.toLowerCase().includes('sun') ? 'SUN' :
-                   lookbook.vibe.weather.condition.toLowerCase().includes('rain') ? 'RAIN' :
-                   lookbook.vibe.weather.condition.toLowerCase().includes('cloud') ? 'CLOUD' : '-'}
-                </div>
-                <div className="text-xs text-gray-500 capitalize">{lookbook.vibe.seasonal_recommendations?.clothing_weight} layers</div>
-              </div>
+      <div className="relative z-10 px-6 md:px-12 py-12 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-20 fade-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-full text-sm text-white/70 mb-6 backdrop-blur-sm">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              Style Profile Generated
             </div>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
+              @{lookbook.handle}
+            </h1>
+            <p className="text-purple-200/80 text-xl font-light italic max-w-xl mx-auto">
+              &quot;{lookbook.vibe.energy}&quot;
+            </p>
           </div>
-        )}
 
-        {/* Vibe Card */}
-        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-800/50 rounded-2xl p-6 md:p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Your Vibe</h2>
-          <p className="text-gray-300 text-lg mb-6 leading-relaxed">
-            {lookbook.vibe.vibe_summary}
-          </p>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            {lookbook.vibe.aesthetic_keywords.map((keyword) => (
-              <span
-                key={keyword}
-                className="px-3 py-1 bg-purple-900/50 border border-purple-700 rounded-full text-sm text-purple-300"
+          {/* Profile Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+            {[
+              { label: 'Gender', value: lookbook.vibe.gender || 'Unknown', sub: `${Math.round((lookbook.vibe.gender_confidence || 0) * 100)}% confidence` },
+              { label: 'Archetype', value: (lookbook.vibe.profession_archetype || 'creative').replace('-', ' '), sub: 'Style profile' },
+              { label: 'Age Range', value: lookbook.vibe.age_range || '25-35', sub: 'Estimated' },
+              { label: 'Budget', value: lookbook.style?.budget_tier || 'Mixed', sub: 'Tier' },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="bg-white/[0.06] border border-white/15 rounded-2xl p-5 backdrop-blur-md fade-in hover:bg-white/[0.1] transition-colors"
+                style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}
               >
-                {keyword}
-              </span>
+                <div className="text-xs text-purple-300/70 uppercase tracking-widest mb-2 font-medium">{item.label}</div>
+                <div className="font-bold text-white text-lg capitalize">{item.value}</div>
+                <div className="text-xs text-white/40 mt-1">{item.sub}</div>
+              </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="bg-black/30 rounded-lg p-3">
-              <span className="text-gray-500 block text-xs mb-1">Primary Style</span>
-              <span className="font-semibold text-purple-400">
-                {lookbook.style.primary_archetype}
-              </span>
-            </div>
-            <div className="bg-black/30 rounded-lg p-3">
-              <span className="text-gray-500 block text-xs mb-1">Secondary</span>
-              <span className="font-semibold text-pink-400">
-                {lookbook.style.secondary_archetype}
-              </span>
-            </div>
-            <div className="bg-black/30 rounded-lg p-3 col-span-2">
-              <span className="text-gray-500 block text-xs mb-1">Communication</span>
-              <span className="font-medium text-gray-300">
-                {lookbook.vibe.communication_style}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Color Season Analysis */}
-        {lookbook.vibe.color_profile && (
-          <div className="bg-gray-900 rounded-2xl p-6 md:p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-2">Your Color Season</h2>
-            <p className="text-gray-400 mb-6 capitalize">
-              {lookbook.vibe.color_profile.subtype.replace('-', ' ')} - {lookbook.vibe.color_profile.description}
+          {/* Vibe Card */}
+          <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
+            <h2 className="text-2xl font-bold text-white mb-6">Your Vibe</h2>
+            <p className="text-white/70 text-lg md:text-xl leading-relaxed mb-8 font-light">
+              {lookbook.vibe.vibe_summary}
             </p>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="text-sm text-green-400 font-semibold mb-3 uppercase tracking-wider">Best Colors</h3>
-                <div className="flex flex-wrap gap-2">
-                  {lookbook.vibe.color_profile.best_colors.slice(0, 6).map((color, i) => (
-                    <span key={i} className="px-2 py-1 bg-green-900/30 border border-green-700/30 rounded text-sm">
-                      {color}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm text-yellow-400 font-semibold mb-3 uppercase tracking-wider">Accent Colors</h3>
-                <div className="flex flex-wrap gap-2">
-                  {lookbook.vibe.color_profile.accent_colors.map((color, i) => (
-                    <span key={i} className="px-2 py-1 bg-yellow-900/30 border border-yellow-700/30 rounded text-sm">
-                      {color}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm text-gray-400 font-semibold mb-3 uppercase tracking-wider">Best Metals</h3>
-                <div className="flex flex-wrap gap-2">
-                  {lookbook.vibe.color_profile.metals.map((metal, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm capitalize">
-                      {metal}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="flex flex-wrap gap-2 mb-8">
+              {lookbook.vibe.aesthetic_keywords.map((keyword, i) => (
+                <span
+                  key={keyword}
+                  className="px-4 py-2 bg-purple-500/10 border border-purple-400/20 rounded-full text-sm text-white/80 hover:bg-purple-500/20 hover:border-purple-400/40 transition-colors cursor-default"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  {keyword}
+                </span>
+              ))}
             </div>
-          </div>
-        )}
 
-        {/* Color Palette */}
-        <div className="bg-gray-900 rounded-2xl p-6 md:p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-6">Your Palette</h2>
-          <div className="flex flex-wrap gap-4">
-            {lookbook.style.color_palette.map((color, i) => (
-              <div key={i} className="flex flex-col items-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Primary', value: lookbook.style.primary_archetype },
+                { label: 'Secondary', value: lookbook.style.secondary_archetype },
+                { label: 'Communication', value: lookbook.vibe.communication_style, span: 2 },
+              ].map((item, i) => (
                 <div
-                  className="w-16 h-16 md:w-20 md:h-20 rounded-xl shadow-lg border-2 border-gray-700"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-xs text-gray-500 mt-2 font-mono">{color}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Signature Pieces */}
-        {lookbook.style.signature_pieces && lookbook.style.signature_pieces.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 border border-amber-700/30 rounded-2xl p-6 md:p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Signature Pieces</h2>
-            <p className="text-gray-400 mb-4 text-sm">Must-have items for your wardrobe</p>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {lookbook.style.signature_pieces.map((piece, i) => (
-                <div key={i} className="bg-black/30 rounded-lg p-3 text-center">
-                  <span className="text-sm">{piece}</span>
+                  key={i}
+                  className={`bg-white/[0.04] border border-white/10 rounded-xl p-4 ${item.span ? 'col-span-2' : ''}`}
+                >
+                  <span className="text-purple-300/60 block text-xs uppercase tracking-wider mb-1 font-medium">{item.label}</span>
+                  <span className="font-semibold text-white">{item.value}</span>
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Free Recommendations */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">Recommended For You</h2>
-          <p className="text-gray-400 mb-6 text-sm">Personalized picks based on your vibe, gender, and style</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {lookbook.products.free_recommendations.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        </div>
+          {/* Color Season Analysis */}
+          {lookbook.vibe.color_profile && (
+            <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
+              <h2 className="text-2xl font-bold text-white mb-2">Color Season</h2>
+              <p className="text-white/60 mb-8 text-lg capitalize font-light">
+                {lookbook.vibe.color_profile.subtype.replace('-', ' ')} — {lookbook.vibe.color_profile.description}
+              </p>
 
-        {/* Premium Section */}
-        {lookbook.products.premium_recommendations.length > 0 && (
-          <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-2xl p-6 md:p-8 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <div>
-                <h2 className="text-2xl font-bold">Premium Picks</h2>
-                <p className="text-gray-400 text-sm mt-1">
-                  {lookbook.products.premium_recommendations.length} more curated items
-                </p>
+              <div className="grid md:grid-cols-3 gap-8">
+                {[
+                  { title: 'Best Colors', colors: lookbook.vibe.color_profile.best_colors.slice(0, 6) },
+                  { title: 'Accent Colors', colors: lookbook.vibe.color_profile.accent_colors },
+                  { title: 'Metals', colors: lookbook.vibe.color_profile.metals },
+                ].map((section, i) => (
+                  <div key={i}>
+                    <h3 className="text-xs text-purple-300/70 font-semibold mb-4 uppercase tracking-widest">{section.title}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {section.colors.map((color, j) => (
+                        <span key={j} className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white/80 capitalize">
+                          {color}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-              {!showPremium && (
-                <button
-                  onClick={() => setShowPremium(true)}
-                  className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105"
-                >
-                  Unlock Premium
-                </button>
+            </div>
+          )}
+
+          {/* Color Palette Visual */}
+          <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
+            <h2 className="text-2xl font-bold text-white mb-8">Your Palette</h2>
+            <div className="flex flex-wrap gap-5">
+              {lookbook.style.color_palette.map((color, i) => (
+                <div key={i} className="flex flex-col items-center group">
+                  <div
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-white/20 shadow-lg group-hover:scale-110 transition-transform cursor-pointer ring-2 ring-white/10 ring-offset-2 ring-offset-transparent"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-xs text-white/60 mt-3 font-mono opacity-0 group-hover:opacity-100 transition-opacity">{color}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Signature Pieces */}
+          {lookbook.style.signature_pieces && lookbook.style.signature_pieces.length > 0 && (
+            <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
+              <h2 className="text-2xl font-bold text-white mb-2">Signature Pieces</h2>
+              <p className="text-white/50 mb-8 text-sm">Must-have items for your wardrobe</p>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {lookbook.style.signature_pieces.map((piece, i) => (
+                  <div key={i} className="bg-white/[0.04] border border-white/10 rounded-xl p-4 text-center hover:bg-white/[0.08] hover:border-white/20 transition-colors">
+                    <span className="text-sm text-white/80">{piece}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Free Recommendations */}
+          <div className="mb-16">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">Recommended For You</h2>
+              <p className="text-white/50 text-sm">Personalized picks based on your vibe</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {lookbook.products.free_recommendations.map((product, i) => (
+                <ProductCard key={product._id} product={product} index={i} />
+              ))}
+            </div>
+          </div>
+
+          {/* Premium Section */}
+          {lookbook.products.premium_recommendations.length > 0 && (
+            <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Premium Picks</h2>
+                  <p className="text-white/50 text-sm mt-1">
+                    {lookbook.products.premium_recommendations.length} more curated items
+                  </p>
+                </div>
+                {!showPremium && (
+                  <button
+                    onClick={() => setShowPremium(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 px-8 py-4 rounded-xl font-semibold transition-all btn-glow shadow-lg shadow-purple-500/25"
+                  >
+                    Unlock Premium
+                  </button>
+                )}
+              </div>
+
+              {showPremium ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {lookbook.products.premium_recommendations.map((product, i) => (
+                    <ProductCard key={product._id} product={product} index={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 opacity-20 blur-sm pointer-events-none">
+                  {lookbook.products.premium_recommendations.slice(0, 3).map((product, i) => (
+                    <ProductCard key={product._id} product={product} index={i} />
+                  ))}
+                </div>
               )}
             </div>
+          )}
 
-            {showPremium ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {lookbook.products.premium_recommendations.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40 blur-sm pointer-events-none">
-                {lookbook.products.premium_recommendations.slice(0, 3).map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+          {/* Style Tips */}
+          <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
+            <h2 className="text-2xl font-bold text-white mb-6">Style Notes</h2>
+            <p className="text-white/70 text-lg leading-relaxed mb-8 font-light">{lookbook.style.style_notes}</p>
 
-        {/* Style Tips */}
-        <div className="bg-gray-900 rounded-2xl p-6 md:p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Style Notes</h2>
-          <p className="text-gray-300 text-lg mb-6">{lookbook.style.style_notes}</p>
-
-          {/* Enhanced Style Tips */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {lookbook.style.gender_specific_notes && (
-              <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4">
-                <h3 className="text-sm text-purple-400 font-semibold mb-2 uppercase tracking-wider">For You</h3>
-                <p className="text-gray-300 text-sm">{lookbook.style.gender_specific_notes}</p>
-              </div>
-            )}
-            {lookbook.style.profession_style_tips && (
-              <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
-                <h3 className="text-sm text-blue-400 font-semibold mb-2 uppercase tracking-wider">Profession Tips</h3>
-                <p className="text-gray-300 text-sm">{lookbook.style.profession_style_tips}</p>
-              </div>
-            )}
-            {lookbook.style.seasonal_adjustments && (
-              <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4">
-                <h3 className="text-sm text-green-400 font-semibold mb-2 uppercase tracking-wider">Seasonal Tips</h3>
-                <p className="text-gray-300 text-sm">{lookbook.style.seasonal_adjustments}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-gray-800 pt-4">
-            <h3 className="font-bold text-red-400 mb-2">Avoid</h3>
-            <ul className="text-gray-400 space-y-1">
-              {lookbook.style.avoid.map((item, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <span className="text-red-500">-</span> {item}
-                </li>
+            {/* Enhanced Style Tips */}
+            <div className="grid md:grid-cols-2 gap-4 mb-8">
+              {[
+                { label: 'For You', content: lookbook.style.gender_specific_notes },
+                { label: 'Profession Tips', content: lookbook.style.profession_style_tips },
+                { label: 'Seasonal Tips', content: lookbook.style.seasonal_adjustments },
+              ].filter(tip => tip.content).map((tip, i) => (
+                <div key={i} className="bg-white/[0.04] border border-white/10 rounded-xl p-5">
+                  <h3 className="text-xs text-purple-300/70 font-semibold mb-3 uppercase tracking-widest">{tip.label}</h3>
+                  <p className="text-white/70 text-sm leading-relaxed">{tip.content}</p>
+                </div>
               ))}
-            </ul>
+            </div>
+
+            <div className="border-t border-white/10 pt-6">
+              <h3 className="text-white/60 text-sm font-semibold mb-4">Avoid</h3>
+              <div className="flex flex-wrap gap-2">
+                {lookbook.style.avoid.map((item, i) => (
+                  <span key={i} className="px-3 py-1.5 bg-red-500/10 border border-red-400/20 rounded-lg text-sm text-red-300/80">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="text-center py-8">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-            className={`px-6 py-3 rounded-xl mr-4 transition-all ${
-              copied
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-800 hover:bg-gray-700'
-            }`}
-          >
-            {copied ? 'Copied!' : 'Share'}
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-purple-600 hover:bg-purple-500 px-6 py-3 rounded-xl transition-colors"
-          >
-            Analyze Another
-          </button>
-        </div>
+          {/* Footer Actions */}
+          <div className="text-center py-12">
+            <div className="flex justify-center gap-4 mb-12">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className={`px-8 py-4 rounded-xl font-semibold transition-all ${
+                  copied
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                }`}
+              >
+                {copied ? 'Copied!' : 'Share Lookbook'}
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="bg-white text-black hover:bg-purple-100 px-8 py-4 rounded-xl font-semibold transition-all btn-glow"
+              >
+                Analyze Another
+              </button>
+            </div>
 
-        {/* Powered By */}
-        <div className="text-center text-xs text-gray-600 pb-8">
-          Powered by MongoDB | Fireworks AI | Voyage AI | Coinbase
+            {/* Powered By */}
+            <div className="flex items-center justify-center gap-6 text-white/40 text-xs">
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-400/50 rounded-full" />
+                MongoDB
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-pink-400/50 rounded-full" />
+                Fireworks AI
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full" />
+                Voyage AI
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -511,8 +466,11 @@ function LookbookContent() {
 export default function LookbookPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-pulse text-xl">Loading lookbook...</div>
+      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center gradient-bg">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-[#444]">Loading...</div>
+        </div>
       </main>
     }>
       <LookbookContent />

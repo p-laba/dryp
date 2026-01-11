@@ -49,11 +49,13 @@ export class ShoppingAgent extends BaseAgent<
     const { style, vibe } = input;
     const db = await getDb();
 
-    // Build gender filter
+    // Build strict gender filter - prioritize gender-specific products
+    const detectedGender = vibe.gender || 'unknown';
     const genderFilter: string[] = ['unisex'];
-    if (vibe.gender === 'male') {
+
+    if (detectedGender === 'male') {
       genderFilter.push('male');
-    } else if (vibe.gender === 'female') {
+    } else if (detectedGender === 'female') {
       genderFilter.push('female');
     } else {
       // Unknown gender - include all
@@ -66,34 +68,67 @@ export class ShoppingAgent extends BaseAgent<
       style.secondary_archetype.toLowerCase().replace(/ /g, '-'),
     ];
 
-    this.log(`Searching for: ${archetypeQuery.join(', ')} | Gender: ${genderFilter.join(', ')}`);
+    this.log(`Searching for: ${archetypeQuery.join(', ')} | Gender: ${detectedGender} (${genderFilter.join(', ')})`);
 
-    // Find products matching archetypes and gender
-    let products = await db.collection('products')
-      .find({
-        style_archetypes: { $in: archetypeQuery },
-        $or: [
-          { gender: { $in: genderFilter } },
-          { gender: { $exists: false } }, // Include products without gender field
-        ],
-      })
-      .limit(15)
-      .toArray();
+    // STEP 1: Find gender-specific products matching archetypes FIRST
+    let products: Record<string, unknown>[] = [];
 
-    // If not enough matches, expand search
-    if (products.length < 6) {
-      this.log('Expanding search to include more products...');
-      const additionalProducts = await db.collection('products')
+    if (detectedGender !== 'unknown') {
+      // First priority: gender-specific products matching archetypes
+      const genderSpecificProducts = await db.collection('products')
         .find({
-          $or: [
-            { gender: { $in: genderFilter } },
-            { gender: { $exists: false } },
-          ],
+          style_archetypes: { $in: archetypeQuery },
+          gender: detectedGender, // Exact gender match first
         })
-        .limit(15 - products.length)
+        .limit(10)
         .toArray();
 
-      products = [...products, ...additionalProducts];
+      products = [...genderSpecificProducts];
+      this.log(`Found ${genderSpecificProducts.length} gender-specific products matching archetypes`);
+    }
+
+    // STEP 2: Add unisex products matching archetypes
+    const unisexProducts = await db.collection('products')
+      .find({
+        style_archetypes: { $in: archetypeQuery },
+        gender: 'unisex',
+      })
+      .limit(8)
+      .toArray();
+
+    products = [...products, ...unisexProducts];
+    this.log(`Added ${unisexProducts.length} unisex products`);
+
+    // STEP 3: If still not enough, get more gender-specific products (any archetype)
+    if (products.length < 6 && detectedGender !== 'unknown') {
+      this.log('Expanding search for more gender-specific products...');
+      const existingIds = products.map(p => p._id);
+
+      const moreGenderProducts = await db.collection('products')
+        .find({
+          gender: { $in: [detectedGender, 'unisex'] },
+          _id: { $nin: existingIds },
+        })
+        .limit(10 - products.length)
+        .toArray();
+
+      products = [...products, ...moreGenderProducts];
+      this.log(`Added ${moreGenderProducts.length} more gender-appropriate products`);
+    }
+
+    // STEP 4: Last resort - add any matching products but penalize wrong gender
+    if (products.length < 6) {
+      this.log('Final expansion - adding remaining products...');
+      const existingIds = products.map(p => p._id);
+
+      const remainingProducts = await db.collection('products')
+        .find({
+          _id: { $nin: existingIds },
+        })
+        .limit(10 - products.length)
+        .toArray();
+
+      products = [...products, ...remainingProducts];
     }
 
     // Deduplicate
@@ -161,15 +196,22 @@ export class ShoppingAgent extends BaseAgent<
     let colorMatch = false;
     let seasonAppropriate = true;
 
-    // Gender match (important!)
+    // Gender match (VERY important - heavily penalize wrong gender)
     const productGender = product.gender as string | undefined;
+    const userGender = vibe.gender || 'unknown';
+
     if (productGender && productGender !== 'unisex') {
-      if (vibe.gender !== 'unknown' && productGender !== vibe.gender) {
-        score -= 30;
+      if (userGender !== 'unknown' && productGender !== userGender) {
+        // WRONG gender - massive penalty, essentially filter out
+        score -= 80;
         genderMatch = false;
-      } else if (productGender === vibe.gender) {
-        score += 15;
+      } else if (productGender === userGender) {
+        // Exact gender match - bonus
+        score += 25;
       }
+    } else if (productGender === 'unisex') {
+      // Unisex is good but gender-specific is better
+      score += 10;
     }
 
     // Archetype match

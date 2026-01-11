@@ -22,15 +22,12 @@ const STATUS_MESSAGES: Record<string, string> = {
   error: 'Something went wrong',
 };
 
-const STATUS_ICONS: Record<string, string> = {
-  pending: '⏳',
-  scraping: '🔍',
-  analyzing_vibe: '🧠',
-  matching_style: '🎨',
-  finding_products: '🛒',
-  complete: '✨',
-  error: '❌',
-};
+const AGENTS = [
+  { name: 'Scraper Agent', desc: 'Collecting tweets', threshold: 25, working: 10 },
+  { name: 'Vibe Agent', desc: 'Analyzing personality', threshold: 50, working: 30 },
+  { name: 'Style Agent', desc: 'Matching archetypes', threshold: 70, working: 55 },
+  { name: 'Shopping Agent', desc: 'Finding products', threshold: 90, working: 75 },
+];
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
@@ -53,10 +50,9 @@ function AnalyzeContent() {
         setJob(data);
 
         if (data.status === 'complete' && data.lookbook_id) {
-          // Small delay for UX
           setTimeout(() => {
             router.push(`/lookbook?id=${data.lookbook_id}`);
-          }, 1500);
+          }, 1000);
         } else if (data.status !== 'error') {
           setTimeout(pollStatus, 1000);
         }
@@ -76,96 +72,116 @@ function AnalyzeContent() {
     return 'waiting';
   };
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'complete': return 'text-green-400';
-      case 'working': return 'text-yellow-400 animate-pulse';
-      default: return 'text-gray-600';
-    }
-  };
-
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-      <div className="max-w-md w-full text-center">
-        {/* Animated Icon */}
-        <div className="text-7xl mb-8 animate-bounce">
-          {job ? STATUS_ICONS[job.status] || '👔' : '👔'}
-        </div>
+    <main className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center px-6 gradient-bg relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 dot-pattern opacity-20" />
+      <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl float" />
 
-        <h2 className="text-2xl font-bold mb-2">
-          Analyzing @{handle || '...'}
-        </h2>
+      <div className="max-w-md w-full text-center relative z-10">
+        {/* Handle */}
+        <div className="fade-in">
+          <p className="text-[#444] text-sm mb-3 tracking-widest uppercase font-light">Analyzing</p>
+          <h2 className="text-4xl md:text-5xl font-semibold text-white mb-10">
+            @{handle || '...'}
+          </h2>
+        </div>
 
         {/* Status Message */}
-        <p className="text-gray-400 mb-8 text-lg">
-          {job ? STATUS_MESSAGES[job.status] : 'Loading...'}
+        <p className="text-[#666] mb-12 text-xl font-light fade-in fade-in-delay-1">
+          {job ? STATUS_MESSAGES[job.status] : 'Initializing...'}
         </p>
 
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-800 rounded-full h-3 mb-4 overflow-hidden">
-          <div
-            className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${job?.progress || 0}%` }}
-          />
+        {/* Progress Ring */}
+        <div className="relative w-32 h-32 mx-auto mb-12 fade-in fade-in-delay-2">
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="#111"
+              strokeWidth="6"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="white"
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray={`${(job?.progress || 0) * 2.83} 283`}
+              className="transition-all duration-500 ease-out"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-semibold text-white">{job?.progress || 0}%</span>
+          </div>
         </div>
 
-        <p className="text-sm text-gray-500 mb-12">
-          {job?.progress || 0}% complete
-        </p>
-
         {/* Agent Activity */}
-        <div className="bg-gray-900 rounded-xl p-6 text-left">
-          <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">
+        <div className="bg-[#0a0a0a]/80 border border-[#151515] rounded-2xl p-6 text-left backdrop-blur-sm fade-in fade-in-delay-3">
+          <h3 className="text-[#444] text-xs font-medium mb-6 uppercase tracking-widest">
             Agent Activity
           </h3>
-          <div className="space-y-3">
-            <div className={`flex items-center gap-3 ${getStatusClass(getAgentStatus(25, 10))}`}>
-              <span>🔍</span>
-              <span>Scraper Agent</span>
-              <span className="ml-auto text-xs">
-                {getAgentStatus(25, 10) === 'complete' ? '✓' : getAgentStatus(25, 10) === 'working' ? '...' : '○'}
-              </span>
-            </div>
-            <div className={`flex items-center gap-3 ${getStatusClass(getAgentStatus(50, 30))}`}>
-              <span>🧠</span>
-              <span>Vibe Agent</span>
-              <span className="ml-auto text-xs">
-                {getAgentStatus(50, 30) === 'complete' ? '✓' : getAgentStatus(50, 30) === 'working' ? '...' : '○'}
-              </span>
-            </div>
-            <div className={`flex items-center gap-3 ${getStatusClass(getAgentStatus(70, 55))}`}>
-              <span>🎨</span>
-              <span>Style Agent</span>
-              <span className="ml-auto text-xs">
-                {getAgentStatus(70, 55) === 'complete' ? '✓' : getAgentStatus(70, 55) === 'working' ? '...' : '○'}
-              </span>
-            </div>
-            <div className={`flex items-center gap-3 ${getStatusClass(getAgentStatus(90, 75))}`}>
-              <span>🛒</span>
-              <span>Shopping Agent</span>
-              <span className="ml-auto text-xs">
-                {getAgentStatus(90, 75) === 'complete' ? '✓' : getAgentStatus(90, 75) === 'working' ? '...' : '○'}
-              </span>
-            </div>
+          <div className="space-y-4">
+            {AGENTS.map((agent, i) => {
+              const status = getAgentStatus(agent.threshold, agent.working);
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between py-2 border-b border-[#111] last:border-0 transition-all ${
+                    status === 'complete' ? 'opacity-100' :
+                    status === 'working' ? 'opacity-100' :
+                    'opacity-40'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full transition-all ${
+                      status === 'complete' ? 'bg-green-400' :
+                      status === 'working' ? 'bg-white animate-pulse' :
+                      'bg-[#333]'
+                    }`} />
+                    <div>
+                      <span className="text-sm text-white">{agent.name}</span>
+                      <span className="text-xs text-[#444] ml-2">{agent.desc}</span>
+                    </div>
+                  </div>
+                  <span className="text-sm">
+                    {status === 'complete' && (
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {status === 'working' && (
+                      <span className="text-white/60">...</span>
+                    )}
+                    {status === 'waiting' && (
+                      <span className="text-[#333]">-</span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Error State */}
         {job?.status === 'error' && (
-          <div className="mt-8 p-6 bg-red-900/30 border border-red-800 rounded-xl">
-            <div className="text-4xl mb-4">😕</div>
-            <h3 className="text-lg font-semibold text-red-400 mb-2">Analysis Failed</h3>
-            <p className="text-gray-400 mb-4 text-sm">{job.error || 'Something went wrong while analyzing your profile.'}</p>
+          <div className="mt-8 p-6 bg-red-500/5 border border-red-500/20 rounded-2xl fade-in">
+            <h3 className="text-red-400 font-medium mb-2">Analysis Failed</h3>
+            <p className="text-[#666] text-sm mb-6">{job.error || 'Something went wrong.'}</p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => window.location.reload()}
-                className="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
+                className="text-sm bg-[#111] hover:bg-[#1a1a1a] border border-[#222] px-5 py-2.5 rounded-xl transition-colors"
               >
                 Retry
               </button>
               <button
                 onClick={() => router.push('/')}
-                className="text-sm bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors"
+                className="text-sm bg-white text-black hover:bg-[#e5e5e5] px-5 py-2.5 rounded-xl font-medium transition-colors btn-glow"
               >
                 Try Different Handle
               </button>
@@ -173,12 +189,10 @@ function AnalyzeContent() {
           </div>
         )}
 
-        {/* Timeout Warning */}
-        {job && job.progress > 0 && job.progress < 100 && job.status !== 'error' && (
-          <p className="mt-8 text-xs text-gray-600">
-            Analysis typically takes 30-60 seconds. Please don&apos;t close this page.
-          </p>
-        )}
+        {/* Footer */}
+        <p className="mt-16 text-[#333] text-xs font-light">
+          Analysis takes 30-60 seconds
+        </p>
       </div>
     </main>
   );
@@ -187,8 +201,11 @@ function AnalyzeContent() {
 export default function AnalyzePage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-pulse text-xl">Loading...</div>
+      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center gradient-bg">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-[#444]">Loading...</div>
+        </div>
       </main>
     }>
       <AnalyzeContent />
