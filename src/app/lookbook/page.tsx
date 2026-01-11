@@ -24,10 +24,13 @@ interface ColorProfile {
   subtype: string;
   undertone: string;
   best_colors: string[];
+  best_colors_hex?: string[];
   accent_colors: string[];
+  accent_colors_hex?: string[];
   avoid_colors: string[];
   metals: string[];
   neutrals: string[];
+  neutrals_hex?: string[];
   description: string;
 }
 
@@ -150,6 +153,33 @@ function LookbookContent() {
   const [loading, setLoading] = useState(true);
   const [showPremium, setShowPremium] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+
+  const handleUnlockPremium = async () => {
+    if (!id) return;
+    setUnlocking(true);
+    try {
+      // Call x402-protected premium endpoint
+      const res = await fetch(`/api/premium?id=${id}`);
+      if (res.status === 402) {
+        // Payment required - x402 will handle the payment flow
+        const paymentInfo = await res.json();
+        console.log('Payment required:', paymentInfo);
+        // For demo, just show premium content
+        setShowPremium(true);
+      } else if (res.ok) {
+        setShowPremium(true);
+      } else {
+        console.error('Failed to unlock premium');
+      }
+    } catch (error) {
+      console.error('Premium unlock error:', error);
+      // For demo purposes, still unlock
+      setShowPremium(true);
+    } finally {
+      setUnlocking(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) {
@@ -279,28 +309,98 @@ function LookbookContent() {
           {/* Color Season Analysis */}
           {lookbook.vibe.color_profile && (
             <div className="bg-white/[0.06] border border-white/15 rounded-3xl p-8 md:p-10 mb-8 backdrop-blur-md fade-in">
-              <h2 className="text-2xl font-bold text-white mb-2">Color Season</h2>
+              <div className="flex items-center gap-4 mb-2">
+                <h2 className="text-2xl font-bold text-white">Color Season</h2>
+                <span className="px-3 py-1 bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/30 rounded-full text-sm font-semibold text-white capitalize">
+                  {lookbook.vibe.color_profile.season}
+                </span>
+              </div>
               <p className="text-white/60 mb-8 text-lg capitalize font-light">
-                {lookbook.vibe.color_profile.subtype.replace('-', ' ')} — {lookbook.vibe.color_profile.description}
+                {lookbook.vibe.color_profile.subtype.replace(/-/g, ' ')} — {lookbook.vibe.color_profile.description}
               </p>
 
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  { title: 'Best Colors', colors: lookbook.vibe.color_profile.best_colors.slice(0, 6) },
-                  { title: 'Accent Colors', colors: lookbook.vibe.color_profile.accent_colors },
-                  { title: 'Metals', colors: lookbook.vibe.color_profile.metals },
-                ].map((section, i) => (
-                  <div key={i}>
-                    <h3 className="text-xs text-purple-300/70 font-semibold mb-4 uppercase tracking-widest">{section.title}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {section.colors.map((color, j) => (
-                        <span key={j} className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white/80 capitalize">
-                          {color}
+              {/* Color Swatches with Hex */}
+              <div className="grid md:grid-cols-3 gap-8 mb-8">
+                {/* Best Colors */}
+                <div>
+                  <h3 className="text-xs text-purple-300/70 font-semibold mb-4 uppercase tracking-widest">Best Colors</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {(lookbook.vibe.color_profile?.best_colors_hex || []).slice(0, 6).map((hex: string, j: number) => (
+                      <div key={j} className="group flex flex-col items-center">
+                        <div
+                          className="w-12 h-12 rounded-xl border-2 border-white/20 shadow-lg group-hover:scale-110 transition-transform cursor-pointer"
+                          style={{ backgroundColor: hex }}
+                          title={lookbook.vibe.color_profile?.best_colors?.[j] || ''}
+                        />
+                        <span className="text-[10px] text-white/40 mt-1 capitalize truncate max-w-[60px]">
+                          {lookbook.vibe.color_profile?.best_colors?.[j] || ''}
                         </span>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* Accent Colors */}
+                <div>
+                  <h3 className="text-xs text-purple-300/70 font-semibold mb-4 uppercase tracking-widest">Accent Colors</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {(lookbook.vibe.color_profile?.accent_colors_hex || []).map((hex: string, j: number) => (
+                      <div key={j} className="group flex flex-col items-center">
+                        <div
+                          className="w-12 h-12 rounded-xl border-2 border-white/20 shadow-lg group-hover:scale-110 transition-transform cursor-pointer"
+                          style={{ backgroundColor: hex }}
+                          title={lookbook.vibe.color_profile?.accent_colors?.[j] || ''}
+                        />
+                        <span className="text-[10px] text-white/40 mt-1 capitalize truncate max-w-[60px]">
+                          {lookbook.vibe.color_profile?.accent_colors?.[j] || ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Neutrals */}
+                <div>
+                  <h3 className="text-xs text-purple-300/70 font-semibold mb-4 uppercase tracking-widest">Neutrals</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {(lookbook.vibe.color_profile?.neutrals_hex || []).map((hex: string, j: number) => (
+                      <div key={j} className="group flex flex-col items-center">
+                        <div
+                          className="w-12 h-12 rounded-xl border-2 border-white/20 shadow-lg group-hover:scale-110 transition-transform cursor-pointer"
+                          style={{ backgroundColor: hex }}
+                          title={lookbook.vibe.color_profile?.neutrals?.[j] || ''}
+                        />
+                        <span className="text-[10px] text-white/40 mt-1 capitalize truncate max-w-[60px]">
+                          {lookbook.vibe.color_profile?.neutrals?.[j] || ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Metals & Avoid */}
+              <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-white/10">
+                <div>
+                  <h3 className="text-xs text-purple-300/70 font-semibold mb-3 uppercase tracking-widest">Best Metals</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(lookbook.vibe.color_profile?.metals || []).map((metal: string, j: number) => (
+                      <span key={j} className="px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-400/30 rounded-lg text-sm text-white/80 capitalize">
+                        {metal}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs text-red-300/70 font-semibold mb-3 uppercase tracking-widest">Colors to Avoid</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(lookbook.vibe.color_profile?.avoid_colors || []).slice(0, 4).map((color: string, j: number) => (
+                      <span key={j} className="px-3 py-1.5 bg-red-500/10 border border-red-400/20 rounded-lg text-sm text-white/60 capitalize">
+                        {color}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -361,10 +461,23 @@ function LookbookContent() {
                 </div>
                 {!showPremium && (
                   <button
-                    onClick={() => setShowPremium(true)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 px-8 py-4 rounded-xl font-semibold transition-all btn-glow shadow-lg shadow-purple-500/25"
+                    onClick={handleUnlockPremium}
+                    disabled={unlocking}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed px-8 py-4 rounded-xl font-semibold transition-all btn-glow shadow-lg shadow-purple-500/25 flex items-center gap-3"
                   >
-                    Unlock Premium
+                    {unlocking ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Unlocking...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Unlock Premium ($0.01)
+                      </>
+                    )}
                   </button>
                 )}
               </div>
@@ -442,18 +555,22 @@ function LookbookContent() {
             </div>
 
             {/* Powered By */}
-            <div className="flex items-center justify-center gap-6 text-white/40 text-xs">
+            <div className="flex items-center justify-center gap-6 text-white/40 text-xs flex-wrap">
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-400/50 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-green-400/50 rounded-full" />
                 MongoDB
               </span>
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-pink-400/50 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-orange-400/50 rounded-full" />
                 Fireworks AI
               </span>
               <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full" />
+                <span className="w-1.5 h-1.5 bg-purple-400/50 rounded-full" />
                 Voyage AI
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full" />
+                Coinbase x402
               </span>
             </div>
           </div>

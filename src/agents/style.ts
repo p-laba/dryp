@@ -18,7 +18,7 @@ export interface StyleRecommendation {
   signature_pieces: string[];
 }
 
-// Profession-specific style mappings
+// Profession-specific style mappings - OLD MONEY FOCUSED
 const PROFESSION_STYLE_MAP: Record<ProfessionArchetype, {
   description: string;
   key_brands: string[];
@@ -26,64 +26,64 @@ const PROFESSION_STYLE_MAP: Record<ProfessionArchetype, {
   style_vibe: string;
 }> = {
   'tech-founder': {
-    description: 'Stealth wealth, quiet luxury. The "I could buy this company" energy.',
-    key_brands: ['Brunello Cucinelli', 'Loro Piana', 'The Row', 'Fear of God Essentials', 'Zegna'],
-    signature_items: ['cashmere crewneck', 'premium gray t-shirt', 'tailored joggers', 'minimalist sneakers', 'understated watch'],
-    style_vibe: 'Expensive basics that whisper wealth',
+    description: 'Old money stealth wealth. European aristocracy meets Silicon Valley. No logos, only quality.',
+    key_brands: ['Brunello Cucinelli', 'Loro Piana', 'The Row', 'Zegna', 'Hermès'],
+    signature_items: ['cashmere crewneck sweater', 'Loro Piana loafers', 'silk-cotton t-shirt', 'tailored wool trousers', 'baby cashmere scarf'],
+    style_vibe: 'Quiet luxury that whispers generational wealth',
   },
   'developer': {
-    description: 'Comfort-first with subtle tech cred. Function meets form.',
-    key_brands: ['Allbirds', 'Patagonia', 'Arc\'teryx', 'Uniqlo', 'Everlane'],
-    signature_items: ['quality hoodie', 'performance fleece', 'dark jeans', 'comfortable sneakers', 'backpack'],
-    style_vibe: 'Practical, comfortable, subtly technical',
+    description: 'Elevated comfort with old money sensibility. Quality over hype.',
+    key_brands: ['COS', 'Theory', 'Common Projects', 'Reiss', 'A.P.C.'],
+    signature_items: ['cashmere hoodie', 'premium chinos', 'minimalist sneakers', 'wool blazer', 'quality leather goods'],
+    style_vibe: 'Understated, quality-focused, subtly refined',
   },
   'creative': {
-    description: 'Bold self-expression, mixing high and low, vintage and new.',
-    key_brands: ['Comme des Garçons', 'Rick Owens', 'Margiela', 'vintage finds', 'emerging designers'],
-    signature_items: ['statement jacket', 'unique accessories', 'interesting textures', 'artistic pieces', 'conversation starters'],
-    style_vibe: 'Artistic, intentional, boundary-pushing',
+    description: 'Artistic refinement meets European elegance. Avant-garde with old money polish.',
+    key_brands: ['The Row', 'Totême', 'Lemaire', 'Jil Sander', 'Bottega Veneta'],
+    signature_items: ['architectural coat', 'sculptural accessories', 'quality leather', 'neutral palette', 'statement simplicity'],
+    style_vibe: 'Artistic, refined, gallery-ready elegance',
   },
   'finance': {
-    description: 'Traditional elegance with power cues. Serious money energy.',
-    key_brands: ['Tom Ford', 'Brioni', 'Hermès', 'Rolex', 'Ermenegildo Zegna'],
-    signature_items: ['tailored suit', 'luxury watch', 'leather briefcase', 'silk tie', 'Oxford shoes'],
-    style_vibe: 'Polished, traditional, authoritative',
+    description: 'Classic old money power. Inherited wealth aesthetic. European tailoring.',
+    key_brands: ['Loro Piana', 'Hermès', 'Brioni', 'John Lobb', 'Brunello Cucinelli'],
+    signature_items: ['cashmere overcoat', 'bespoke suit', 'silk tie', 'Oxford shoes', 'understated watch'],
+    style_vibe: 'Boardroom to country estate elegance',
   },
   'influencer': {
-    description: 'Camera-ready, on-trend, brand-conscious. Made for the feed.',
-    key_brands: ['Jacquemus', 'Bottega Veneta', 'trending designers', 'It brands', 'statement logos'],
-    signature_items: ['photogenic pieces', 'trending items', 'statement bags', 'bold accessories', 'mix of luxury and accessible'],
-    style_vibe: 'Trendy, photogenic, instantly recognizable',
+    description: 'Quiet luxury influencer. Stealth wealth content. Quality over logos.',
+    key_brands: ['The Row', 'Bottega Veneta', 'Khaite', 'Totême', 'Loewe'],
+    signature_items: ['investment bags', 'cashmere layers', 'quality leather', 'minimalist jewelry', 'premium basics'],
+    style_vibe: 'Aspirational old money, effortlessly expensive',
   },
   'academic': {
-    description: 'Timeless intellectual style. Think tweed meets modern.',
-    key_brands: ['J.Press', 'Brooks Brothers', 'Drake\'s', 'Margaret Howell', 'A.P.C.'],
-    signature_items: ['blazer', 'quality knitwear', 'Oxford cloth button-down', 'loafers', 'leather tote'],
-    style_vibe: 'Intellectual, timeless, thoughtfully assembled',
+    description: 'Ivy League old money. Oxford scholar meets European intellectual.',
+    key_brands: ['Ralph Lauren Purple Label', 'Barbour', 'Drake\'s', 'Loro Piana', 'Crockett & Jones'],
+    signature_items: ['wax jacket', 'cashmere v-neck', 'Oxford shirt', 'penny loafers', 'leather satchel'],
+    style_vibe: 'Intellectual elegance, country estate casual',
   },
   'artist': {
-    description: 'Avant-garde expression. Clothes as art.',
-    key_brands: ['Yohji Yamamoto', 'Issey Miyake', 'Ann Demeulemeester', 'Comme des Garçons', 'Rick Owens'],
-    signature_items: ['architectural pieces', 'all-black looks', 'asymmetric cuts', 'unusual silhouettes', 'artisan jewelry'],
-    style_vibe: 'Dramatic, sculptural, gallery-ready',
+    description: 'Refined artistic expression. Gallery owner energy.',
+    key_brands: ['The Row', 'Jil Sander', 'Lemaire', 'Bottega Veneta', 'Maison Margiela'],
+    signature_items: ['sculptural coat', 'quality all-black', 'architectural pieces', 'artisan accessories', 'museum-worthy elegance'],
+    style_vibe: 'Curated, intentional, art collector aesthetic',
   },
   'entrepreneur': {
-    description: 'Versatile polish. Boardroom to bar.',
-    key_brands: ['Theory', 'Reiss', 'COS', 'Suitsupply', 'Massimo Dutti'],
-    signature_items: ['versatile blazer', 'smart casual pieces', 'quality basics', 'good leather shoes', 'classic watch'],
-    style_vibe: 'Adaptable, polished, professional',
+    description: 'Versatile old money polish. Yacht club to investor meeting.',
+    key_brands: ['Brunello Cucinelli', 'Zegna', 'Theory', 'Loro Piana', 'Reiss'],
+    signature_items: ['cashmere blazer', 'silk polo', 'tailored trousers', 'suede loafers', 'quality leather belt'],
+    style_vibe: 'Adaptable elegance, inherited taste',
   },
   'athlete': {
-    description: 'Performance meets lifestyle. Elevated athleisure.',
-    key_brands: ['Lululemon', 'Nike', 'Rhone', 'Vuori', 'Outdoor Voices'],
-    signature_items: ['premium joggers', 'performance polo', 'technical layers', 'quality sneakers', 'sporty watch'],
-    style_vibe: 'Active, fit, performance-oriented',
+    description: 'Country club athletic. Golf course to yacht deck.',
+    key_brands: ['Loro Piana', 'Brunello Cucinelli', 'Ralph Lauren', 'Moncler', 'Common Projects'],
+    signature_items: ['cashmere track pants', 'polo shirt', 'premium sneakers', 'luxury puffer', 'silk-blend hoodie'],
+    style_vibe: 'Elevated leisure, old money sporty',
   },
   'general': {
-    description: 'Classic versatility. Build a solid foundation.',
-    key_brands: ['Uniqlo', 'Everlane', 'COS', 'Mango', 'Zara'],
-    signature_items: ['quality basics', 'versatile jeans', 'clean sneakers', 'classic outerwear', 'minimal accessories'],
-    style_vibe: 'Clean, versatile, universally appealing',
+    description: 'Timeless old money foundation. Quality basics with European sensibility.',
+    key_brands: ['COS', 'Reiss', 'Sézane', 'A.P.C.', 'Theory'],
+    signature_items: ['cashmere sweater', 'tailored trousers', 'quality leather shoes', 'classic coat', 'minimalist accessories'],
+    style_vibe: 'Understated elegance, timeless investment pieces',
   },
 };
 

@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@x402/core": "^2.2.0",
+    "@x402/evm": "^2.2.0",
     "@x402/next": "^2.2.0",
     "apify-client": "^2.21.0",
     "mongodb": "^7.0.0",
