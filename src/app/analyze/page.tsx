@@ -152,15 +152,32 @@ function AnalyzeContent() {
 
         {/* Error State */}
         {job?.status === 'error' && (
-          <div className="mt-8 p-4 bg-red-900/30 border border-red-800 rounded-xl">
-            <p className="text-red-400 mb-4">{job.error}</p>
-            <button
-              onClick={() => router.push('/')}
-              className="text-sm text-white underline hover:no-underline"
-            >
-              Try again
-            </button>
+          <div className="mt-8 p-6 bg-red-900/30 border border-red-800 rounded-xl">
+            <div className="text-4xl mb-4">😕</div>
+            <h3 className="text-lg font-semibold text-red-400 mb-2">Analysis Failed</h3>
+            <p className="text-gray-400 mb-4 text-sm">{job.error || 'Something went wrong while analyzing your profile.'}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="text-sm bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors"
+              >
+                Try Different Handle
+              </button>
+            </div>
           </div>
+        )}
+
+        {/* Timeout Warning */}
+        {job && job.progress > 0 && job.progress < 100 && job.status !== 'error' && (
+          <p className="mt-8 text-xs text-gray-600">
+            Analysis typically takes 30-60 seconds. Please don&apos;t close this page.
+          </p>
         )}
       </div>
     </main>

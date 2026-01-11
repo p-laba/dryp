@@ -154,26 +154,105 @@ class Orchestrator {
   }
 
   private getDemoProfile(handle: string): TwitterProfile {
-    // Demo profiles for testing without Apify
-    const demoTweets = [
-      "Just shipped a new feature at 3am. Sleep is for the weak.",
-      "Hot take: TypeScript > JavaScript. Fight me.",
-      "The future is agents. Everything will be automated.",
-      "Currently obsessed with minimalist design and black coffee.",
-      "Why do meetings exist when we have Slack?",
-      "Building in public is the way. Transparency wins.",
-      "AI is not going to take your job. Someone using AI will.",
-      "Startup life: 80 hour weeks but at least I'm my own boss lol",
-      "Clean code is a love language.",
-      "Just discovered a new coffee shop. Productivity +100%",
-    ];
+    // Different demo profiles based on handle patterns
+    const handleLower = handle.toLowerCase();
 
+    // Female tech founder profile
+    if (handleLower.includes('sara') || handleLower.includes('emily') || handleLower.includes('jessica') || handleLower.includes('sarah') || handleLower.includes('paulina')) {
+      return {
+        handle,
+        name: handle.charAt(0).toUpperCase() + handle.slice(1).replace(/[^a-zA-Z]/g, ' '),
+        bio: "Founder @stealth | Ex-Google | Building the future | Stanford CS '18 | Investor in women-led startups",
+        followers: 24500,
+        following: 1892,
+        location: "San Francisco, CA",
+        tweets: [
+          "Just closed our Series A! Grateful for the incredible team and investors who believed in us from day one.",
+          "Unpopular opinion: The best founders I know take Sundays off. Rest is productive.",
+          "Finally got my Loro Piana loafers. Worth every penny. Comfort meets luxury.",
+          "Building a company is 80% hiring. Get the right people and everything else follows.",
+          "SF weather is unbeatable. Morning run along the Embarcadero, then straight to the office.",
+          "Reading 'The Mom Test' again. Every founder should read this quarterly.",
+          "Took a break to reorganize my closet. Marie Kondo was right about everything.",
+          "Hot take: Email is underrated. Slack is chaotic. Deep work needs deep focus.",
+          "My uniform: cashmere sweater, tailored pants, white sneakers. Simple but effective.",
+          "Just had coffee with 3 female founders today. We need more of these gatherings.",
+          "Minimalism isn't about having less. It's about having only what matters.",
+          "Weekend mood: farmers market, brunch, then planning Q2 OKRs.",
+        ],
+      };
+    }
+
+    // Male developer profile
+    if (handleLower.includes('dev') || handleLower.includes('code') || handleLower.includes('hack')) {
+      return {
+        handle,
+        name: 'Alex Chen',
+        bio: "Staff Engineer @Stripe | Open source enthusiast | Rust & TypeScript | Building tools for developers",
+        followers: 8200,
+        following: 1240,
+        location: "Seattle, WA",
+        tweets: [
+          "Just pushed my 1000th commit to that side project. Still not done lol",
+          "The best code is no code. Second best is deleted code.",
+          "New mechanical keyboard arrived. Already 3x more productive (not really)",
+          "Why do we need 15 JS bundlers? Just use esbuild.",
+          "Working from home today. Hoodie weather is the best weather.",
+          "Finally switched to Neovim. The learning curve was worth it.",
+          "Hot take: Most design patterns are over-engineering in disguise.",
+          "Coffee shop coding hits different. Even if the wifi is terrible.",
+          "Just discovered a memory leak that's been there for 6 months. Oops.",
+          "The Patagonia vest is basically dev uniform at this point.",
+        ],
+      };
+    }
+
+    // Creative/Designer profile
+    if (handleLower.includes('design') || handleLower.includes('art') || handleLower.includes('creative')) {
+      return {
+        handle,
+        name: 'Jordan Rivera',
+        bio: "Creative Director | Brand designer | Typography obsessed | Making beautiful things",
+        followers: 15600,
+        following: 2100,
+        location: "Brooklyn, NY",
+        tweets: [
+          "Colors are a vibe. Today's palette: terracotta, sage, cream.",
+          "New project dropped! So proud of this brand identity work.",
+          "Vintage shopping in Williamsburg. Found an incredible 70s blazer.",
+          "Typography is the most underrated skill in design. Fight me.",
+          "Studio day. Natural light, good music, coffee. Perfection.",
+          "Just bought more art supplies I definitely don't need.",
+          "The intersection of fashion and design is where magic happens.",
+          "Working on something experimental. Can't share yet but I'm excited.",
+          "Black turtleneck season is approaching. My favorite time of year.",
+          "Gallery opening tonight. Wearing all black, obviously.",
+        ],
+      };
+    }
+
+    // Default: tech founder male profile
     return {
       handle,
-      bio: "Builder. Hacker. Coffee enthusiast. Shipping code and taking names.",
-      followers: 5420,
+      name: 'Marcus Thompson',
+      bio: "CEO @TechCorp | YC S21 | Building AI infrastructure | Previously @Meta | Shipping fast",
+      followers: 12400,
       following: 892,
-      tweets: demoTweets,
+      location: "Palo Alto, CA",
+      tweets: [
+        "Just shipped a new feature at 3am. Sleep is for the weak.",
+        "Hot take: TypeScript > JavaScript. Fight me.",
+        "The future is agents. Everything will be automated.",
+        "Currently obsessed with minimalist design and black coffee.",
+        "Why do meetings exist when we have Slack?",
+        "Building in public is the way. Transparency wins.",
+        "AI is not going to take your job. Someone using AI will.",
+        "Startup life: 80 hour weeks but at least I'm my own boss lol",
+        "Clean code is a love language.",
+        "Just discovered a new coffee shop. Productivity +100%",
+        "The Cucinelli cashmere hits different after a funding round.",
+        "Gray t-shirt, dark jeans, Common Projects. Every day.",
+      ],
     };
   }
 }

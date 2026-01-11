@@ -13,11 +13,23 @@ export interface ProductRecommendation {
   image_url: string;
   buy_link: string;
   match_reason: string;
+  match_score?: number;
+  gender_match?: boolean;
+  color_match?: boolean;
+  season_appropriate?: boolean;
 }
 
 export interface ShoppingResult {
   free_recommendations: ProductRecommendation[];
   premium_recommendations: ProductRecommendation[];
+  outfit_suggestions?: OutfitSuggestion[];
+}
+
+export interface OutfitSuggestion {
+  name: string;
+  occasion: string;
+  products: string[]; // product IDs
+  styling_tip: string;
 }
 
 export class ShoppingAgent extends BaseAgent<
@@ -25,42 +37,80 @@ export class ShoppingAgent extends BaseAgent<
   ShoppingResult
 > {
   constructor() {
-    super('ShoppingAgent', 'Finds products matching style profile');
+    super('ShoppingAgent', 'Finds gender-appropriate, season-aware products matching style profile');
   }
 
   async run(input: {
     style: StyleRecommendation;
     vibe: VibeAnalysis;
   }): Promise<AgentResult<ShoppingResult>> {
-    this.log('Finding perfect products...');
+    this.log('Finding perfect products with enhanced matching...');
 
     const { style, vibe } = input;
     const db = await getDb();
 
-    // Find products matching the archetypes
-    const products = await db.collection('products')
-      .find({
-        style_archetypes: {
-          $in: [
-            style.primary_archetype.toLowerCase().replace(' ', '-'),
-            style.secondary_archetype.toLowerCase().replace(' ', '-'),
-          ],
-        },
-      })
-      .limit(10)
-      .toArray();
-
-    // If no matches, get random products
-    let matchedProducts = products;
-    if (products.length === 0) {
-      this.log('No archetype matches, getting general products...');
-      matchedProducts = await db.collection('products').find({}).limit(10).toArray();
+    // Build gender filter
+    const genderFilter: string[] = ['unisex'];
+    if (vibe.gender === 'male') {
+      genderFilter.push('male');
+    } else if (vibe.gender === 'female') {
+      genderFilter.push('female');
+    } else {
+      // Unknown gender - include all
+      genderFilter.push('male', 'female');
     }
 
-    // Generate match reasons with LLM
-    const productsWithReasons = await Promise.all(
-      matchedProducts.map(async (product) => {
+    // Build archetype query
+    const archetypeQuery = [
+      style.primary_archetype.toLowerCase().replace(/ /g, '-'),
+      style.secondary_archetype.toLowerCase().replace(/ /g, '-'),
+    ];
+
+    this.log(`Searching for: ${archetypeQuery.join(', ')} | Gender: ${genderFilter.join(', ')}`);
+
+    // Find products matching archetypes and gender
+    let products = await db.collection('products')
+      .find({
+        style_archetypes: { $in: archetypeQuery },
+        $or: [
+          { gender: { $in: genderFilter } },
+          { gender: { $exists: false } }, // Include products without gender field
+        ],
+      })
+      .limit(15)
+      .toArray();
+
+    // If not enough matches, expand search
+    if (products.length < 6) {
+      this.log('Expanding search to include more products...');
+      const additionalProducts = await db.collection('products')
+        .find({
+          $or: [
+            { gender: { $in: genderFilter } },
+            { gender: { $exists: false } },
+          ],
+        })
+        .limit(15 - products.length)
+        .toArray();
+
+      products = [...products, ...additionalProducts];
+    }
+
+    // Deduplicate
+    const seen = new Set<string>();
+    products = products.filter(p => {
+      const id = p._id.toString();
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+
+    // Score and enhance products
+    const scoredProducts = await Promise.all(
+      products.map(async (product) => {
+        const score = this.calculateMatchScore(product, vibe, style);
         const reason = await this.generateMatchReason(product, vibe, style);
+
         return {
           _id: product._id.toString(),
           name: product.name,
@@ -71,13 +121,23 @@ export class ShoppingAgent extends BaseAgent<
           image_url: product.image_url,
           buy_link: product.buy_link,
           match_reason: reason,
+          match_score: score.total,
+          gender_match: score.genderMatch,
+          color_match: score.colorMatch,
+          season_appropriate: score.seasonAppropriate,
         };
       })
     );
 
+    // Sort by match score
+    scoredProducts.sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+
     // Split into free (3) and premium (rest)
-    const freeRecs = productsWithReasons.slice(0, 3);
-    const premiumRecs = productsWithReasons.slice(3);
+    const freeRecs = scoredProducts.slice(0, 3);
+    const premiumRecs = scoredProducts.slice(3);
+
+    // Generate outfit suggestions
+    const outfits = await this.generateOutfitSuggestions(scoredProducts, vibe, style);
 
     this.log(`Found ${freeRecs.length} free + ${premiumRecs.length} premium recommendations`);
 
@@ -86,7 +146,91 @@ export class ShoppingAgent extends BaseAgent<
       data: {
         free_recommendations: freeRecs,
         premium_recommendations: premiumRecs,
+        outfit_suggestions: outfits,
       },
+    };
+  }
+
+  private calculateMatchScore(
+    product: Record<string, unknown>,
+    vibe: VibeAnalysis,
+    style: StyleRecommendation
+  ): { total: number; genderMatch: boolean; colorMatch: boolean; seasonAppropriate: boolean } {
+    let score = 50; // Base score
+    let genderMatch = true;
+    let colorMatch = false;
+    let seasonAppropriate = true;
+
+    // Gender match (important!)
+    const productGender = product.gender as string | undefined;
+    if (productGender && productGender !== 'unisex') {
+      if (vibe.gender !== 'unknown' && productGender !== vibe.gender) {
+        score -= 30;
+        genderMatch = false;
+      } else if (productGender === vibe.gender) {
+        score += 15;
+      }
+    }
+
+    // Archetype match
+    const productArchetypes = (product.style_archetypes as string[]) || [];
+    const primaryMatch = style.primary_archetype.toLowerCase().replace(/ /g, '-');
+    const secondaryMatch = style.secondary_archetype.toLowerCase().replace(/ /g, '-');
+
+    if (productArchetypes.includes(primaryMatch)) {
+      score += 20;
+    }
+    if (productArchetypes.includes(secondaryMatch)) {
+      score += 10;
+    }
+
+    // Color match
+    const productColors = ((product.colors as string[]) || []).map(c => c.toLowerCase());
+    const bestColors = vibe.color_profile?.best_colors.map(c => c.toLowerCase()) || [];
+
+    for (const color of productColors) {
+      for (const best of bestColors) {
+        if (color.includes(best) || best.includes(color)) {
+          score += 10;
+          colorMatch = true;
+          break;
+        }
+      }
+    }
+
+    // Season appropriateness
+    if (vibe.seasonal_recommendations) {
+      const weight = vibe.seasonal_recommendations.clothing_weight;
+      const productWeight = product.weight as string | undefined;
+
+      if (productWeight) {
+        if (weight === 'heavy' && productWeight === 'light') {
+          score -= 15;
+          seasonAppropriate = false;
+        } else if (weight === 'light' && productWeight === 'heavy') {
+          score -= 15;
+          seasonAppropriate = false;
+        } else if (productWeight === weight) {
+          score += 10;
+        }
+      }
+    }
+
+    // Price tier match
+    const price = product.price as number || 0;
+    if (style.budget_tier === 'luxury' && price >= 200) {
+      score += 10;
+    } else if (style.budget_tier === 'accessible' && price <= 100) {
+      score += 10;
+    } else if (style.budget_tier === 'mid-range' && price >= 80 && price <= 250) {
+      score += 10;
+    }
+
+    return {
+      total: Math.max(0, Math.min(100, score)),
+      genderMatch,
+      colorMatch,
+      seasonAppropriate,
     };
   }
 
@@ -95,17 +239,83 @@ export class ShoppingAgent extends BaseAgent<
     vibe: VibeAnalysis,
     style: StyleRecommendation
   ): Promise<string> {
-    const prompt = `In exactly 10-15 words, explain why "${product.name}" by ${product.brand} is perfect for someone with "${vibe.energy}" energy and a ${style.primary_archetype} style. Be specific, stylish, and slightly witty.`;
+    // Include more context for better reasons
+    const genderContext = vibe.gender !== 'unknown' ? `for a ${vibe.gender}` : '';
+    const professionContext = vibe.profession_archetype !== 'general'
+      ? `in the ${vibe.profession_archetype} space`
+      : '';
+
+    const prompt = `In exactly 10-15 words, explain why "${product.name}" by ${product.brand} is perfect ${genderContext} ${professionContext} with "${vibe.energy}" energy and ${style.primary_archetype} style.
+
+Consider:
+- Their vibe: ${vibe.vibe_summary}
+- Season: ${vibe.seasonal_recommendations?.season || 'versatile'}
+- Color profile: ${vibe.color_profile?.subtype || 'flexible'}
+
+Be specific, stylish, and slightly witty. Make it personal.`;
 
     try {
       const response = await this.llm(
-        'You are a fashion stylist giving quick, punchy product recommendations. Return ONLY the recommendation text, nothing else.',
+        'You are a fashion stylist giving quick, punchy product recommendations. Return ONLY the recommendation text, nothing else. Be personalized and specific.',
         prompt,
         { temperature: 0.9 }
       );
       return response.trim().replace(/"/g, '');
     } catch {
-      return `Perfect match for your ${vibe.aesthetic_keywords[0] || 'unique'} aesthetic.`;
+      return `Perfect ${style.primary_archetype.toLowerCase()} pick for your ${vibe.aesthetic_keywords[0] || 'unique'} aesthetic.`;
     }
+  }
+
+  private async generateOutfitSuggestions(
+    products: ProductRecommendation[],
+    vibe: VibeAnalysis,
+    style: StyleRecommendation
+  ): Promise<OutfitSuggestion[]> {
+    if (products.length < 3) {
+      return [];
+    }
+
+    // Group products by category
+    const byCategory: Record<string, ProductRecommendation[]> = {};
+    for (const p of products) {
+      const cat = p.category?.toLowerCase() || 'other';
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(p);
+    }
+
+    const occasions = vibe.profession_archetype === 'tech-founder'
+      ? ['pitch meeting', 'casual friday', 'conference']
+      : vibe.profession_archetype === 'developer'
+        ? ['work from home', 'team standup', 'hackathon']
+        : vibe.profession_archetype === 'creative'
+          ? ['gallery opening', 'studio day', 'client meeting']
+          : ['everyday', 'weekend', 'special occasion'];
+
+    const outfits: OutfitSuggestion[] = [];
+
+    for (let i = 0; i < Math.min(3, occasions.length); i++) {
+      const occasion = occasions[i];
+      // Try to pick one from different categories
+      const selected: string[] = [];
+      const categories = Object.keys(byCategory);
+
+      for (const cat of categories.slice(0, 3)) {
+        if (byCategory[cat].length > 0) {
+          const product = byCategory[cat][i % byCategory[cat].length];
+          selected.push(product._id);
+        }
+      }
+
+      if (selected.length > 0) {
+        outfits.push({
+          name: `${occasion.charAt(0).toUpperCase() + occasion.slice(1)} Look`,
+          occasion,
+          products: selected,
+          styling_tip: `Perfect for ${occasion} - ${style.style_notes.split('.')[0]}.`,
+        });
+      }
+    }
+
+    return outfits;
   }
 }

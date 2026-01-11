@@ -23,11 +23,11 @@ export async function scrapeTwitterProfile(handle: string): Promise<TwitterProfi
 
   // Run the Twitter scraper actor
   const run = await client.actor('quacker/twitter-scraper').call({
-    startUrls: [`https://twitter.com/${cleanHandle}`],
+    startUrls: [{ url: `https://twitter.com/${cleanHandle}` }],
     tweetsDesired: 30,
     includeUserInfo: true,
   }, {
-    timeout: 60, // 60 second timeout
+    timeout: 120, // 120 second timeout for larger profiles
   });
 
   // Get results from dataset
@@ -52,6 +52,9 @@ export async function scrapeTwitterProfile(handle: string): Promise<TwitterProfi
     followers: (userInfo.followers_count as number) || 0,
     following: (userInfo.friends_count as number) || 0,
     tweets,
+    location: (userInfo.location as string) || undefined,
+    profile_image_url: (userInfo.profile_image_url_https as string) || undefined,
+    name: (userInfo.name as string) || undefined,
   };
 }
 

@@ -68,7 +68,10 @@ export default function Home() {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <div className="flex items-center justify-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-lg p-3">
+              <span>⚠️</span>
+              <p>{error}</p>
+            </div>
           )}
 
           <button

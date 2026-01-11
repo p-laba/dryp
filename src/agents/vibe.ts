@@ -1,27 +1,140 @@
 import { BaseAgent, AgentResult } from './base';
 import { TwitterProfile } from '@/lib/twitter';
+import { getWeatherForLocation, getSeasonalRecommendations, WeatherData, SeasonalRecommendation } from '@/lib/weather';
+import { analyzeColorSeason, ColorProfile } from '@/lib/color-analysis';
 
 export interface VibeAnalysis {
+  // Core personality
   personality_traits: string[];
   interests: string[];
   communication_style: string;
   aesthetic_keywords: string[];
   energy: string;
   vibe_summary: string;
+
+  // Enhanced demographics
+  gender: 'male' | 'female' | 'non-binary' | 'unknown';
+  gender_confidence: number; // 0-1
+  age_range: string;
+
+  // Profession/Interest Archetype
+  profession_archetype: ProfessionArchetype;
+
+  // Location & Weather
+  location_detected: string | null;
+  weather?: WeatherData;
+  seasonal_recommendations?: SeasonalRecommendation;
+
+  // Color Analysis (inferred from profile)
+  color_profile?: ColorProfile;
+  inferred_appearance?: InferredAppearance;
+}
+
+export type ProfessionArchetype =
+  | 'tech-founder'      // "Old money" stealth luxury, quiet confidence
+  | 'developer'         // Comfort-focused, hoodies, practical
+  | 'creative'          // Artistic, bold, experimental
+  | 'finance'           // Traditional luxury, conservative
+  | 'influencer'        // Trendy, brand-conscious, photogenic
+  | 'academic'          // Classic, intellectual, timeless
+  | 'artist'            // Avant-garde, unique, expressive
+  | 'entrepreneur'      // Versatile, polished, adaptable
+  | 'athlete'           // Athleisure, performance, sporty
+  | 'general';          // Default fallback
+
+export interface InferredAppearance {
+  hair_color_guess: string | null;
+  eye_color_guess: string | null;
+  skin_tone_guess: string | null;
+  undertone_guess: 'warm' | 'cool' | 'neutral';
+  style_era_preference: string;
 }
 
 export class VibeAgent extends BaseAgent<TwitterProfile, VibeAnalysis> {
   constructor() {
-    super('VibeAgent', 'Analyzes Twitter personality to extract aesthetic vibe');
+    super('VibeAgent', 'Comprehensive personality, demographics, and style analysis');
   }
 
   async run(profile: TwitterProfile): Promise<AgentResult<VibeAnalysis>> {
-    this.log(`Analyzing vibe for @${profile.handle}...`);
+    this.log(`Deep analysis for @${profile.handle}...`);
 
+    // Run multiple analyses in parallel for speed
+    const [personalityResult, demographicsResult, weatherData] = await Promise.all([
+      this.analyzePersonality(profile),
+      this.analyzeDemographics(profile),
+      profile.location ? getWeatherForLocation(profile.location) : Promise.resolve(null),
+    ]);
+
+    if (!personalityResult.success || !personalityResult.data) {
+      return { success: false, error: personalityResult.error || 'Personality analysis failed' };
+    }
+
+    if (!demographicsResult.success || !demographicsResult.data) {
+      return { success: false, error: demographicsResult.error || 'Demographics analysis failed' };
+    }
+
+    const personality = personalityResult.data;
+    const demographics = demographicsResult.data;
+
+    // Analyze color profile based on inferred appearance
+    let colorProfile: ColorProfile | undefined;
+    if (demographics.inferred_appearance) {
+      colorProfile = analyzeColorSeason({
+        hair_color: demographics.inferred_appearance.hair_color_guess || undefined,
+        eye_color: demographics.inferred_appearance.eye_color_guess || undefined,
+        skin_tone: demographics.inferred_appearance.skin_tone_guess || undefined,
+        undertone_guess: demographics.inferred_appearance.undertone_guess,
+      });
+    }
+
+    // Get seasonal recommendations if we have weather
+    let seasonalRecs: SeasonalRecommendation | undefined;
+    if (weatherData) {
+      seasonalRecs = getSeasonalRecommendations(weatherData);
+    }
+
+    const vibeAnalysis: VibeAnalysis = {
+      // Core personality
+      personality_traits: personality.personality_traits,
+      interests: personality.interests,
+      communication_style: personality.communication_style,
+      aesthetic_keywords: personality.aesthetic_keywords,
+      energy: personality.energy,
+      vibe_summary: personality.vibe_summary,
+
+      // Demographics
+      gender: demographics.gender,
+      gender_confidence: demographics.gender_confidence,
+      age_range: demographics.age_range,
+      profession_archetype: demographics.profession_archetype,
+
+      // Location & Weather
+      location_detected: profile.location || demographics.location_inferred || null,
+      weather: weatherData || undefined,
+      seasonal_recommendations: seasonalRecs,
+
+      // Color Analysis
+      color_profile: colorProfile,
+      inferred_appearance: demographics.inferred_appearance,
+    };
+
+    this.log(`Complete! Gender: ${vibeAnalysis.gender} (${Math.round(vibeAnalysis.gender_confidence * 100)}%), Archetype: ${vibeAnalysis.profession_archetype}`);
+
+    return { success: true, data: vibeAnalysis };
+  }
+
+  private async analyzePersonality(profile: TwitterProfile): Promise<AgentResult<{
+    personality_traits: string[];
+    interests: string[];
+    communication_style: string;
+    aesthetic_keywords: string[];
+    energy: string;
+    vibe_summary: string;
+  }>> {
     const systemPrompt = `You are a cultural analyst and fashion psychologist.
-Your job is to analyze someone's Twitter/X presence and determine their aesthetic vibe.
+Analyze this Twitter/X presence to determine their aesthetic vibe.
 
-You MUST return a valid JSON object with this EXACT structure (no markdown, no extra text):
+Return ONLY a valid JSON object (no markdown, no explanation):
 {
   "personality_traits": ["trait1", "trait2", "trait3"],
   "interests": ["interest1", "interest2", "interest3"],
@@ -31,36 +144,133 @@ You MUST return a valid JSON object with this EXACT structure (no markdown, no e
   "vibe_summary": "2-3 sentence summary of their vibe and what fashion would suit them"
 }
 
-Be insightful, slightly edgy, and culturally aware. Think like a fashion editor meets internet culture expert.
-Return ONLY the JSON object, nothing else.`;
+Be insightful, culturally aware, and think like a fashion editor meets internet culture expert.`;
 
     const userPrompt = `Analyze this Twitter profile:
 
 **Handle:** @${profile.handle}
+**Name:** ${profile.name || 'Unknown'}
 **Bio:** ${profile.bio || 'No bio provided'}
 **Stats:** ${profile.followers.toLocaleString()} followers, following ${profile.following.toLocaleString()}
 
 **Recent Tweets:**
-${profile.tweets.slice(0, 15).map((t, i) => `${i + 1}. ${t}`).join('\n')}
-
-Based on this, what is their aesthetic vibe? What kind of fashion would suit their personality?`;
+${profile.tweets.slice(0, 15).map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
 
     try {
-      const response = await this.llm(systemPrompt, userPrompt, { json: true, temperature: 0.8 });
-
-      // Parse JSON, handling potential markdown code blocks
+      const response = await this.llm(systemPrompt, userPrompt, { json: true, temperature: 0.7 });
       let jsonStr = response.trim();
       if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '');
       }
-
-      const vibe = JSON.parse(jsonStr) as VibeAnalysis;
-
-      this.log(`Vibe identified: "${vibe.energy}"`);
-      return { success: true, data: vibe };
+      const data = JSON.parse(jsonStr);
+      return { success: true, data };
     } catch (error) {
-      this.log(`Error: ${error}`);
       return { success: false, error: String(error) };
+    }
+  }
+
+  private async analyzeDemographics(profile: TwitterProfile): Promise<AgentResult<{
+    gender: 'male' | 'female' | 'non-binary' | 'unknown';
+    gender_confidence: number;
+    age_range: string;
+    profession_archetype: ProfessionArchetype;
+    location_inferred: string | null;
+    inferred_appearance: InferredAppearance;
+  }>> {
+    const systemPrompt = `You are an expert at analyzing social media profiles to understand demographics for personalized fashion recommendations.
+
+Your task is to analyze the profile and return demographics. Be respectful and thoughtful.
+
+IMPORTANT GUIDELINES:
+- Gender: Analyze based on name, pronouns in bio, writing style, and content. If unsure, use "unknown"
+- Profession Archetype: Categorize based on interests and content:
+  * "tech-founder" - startup founders, VCs, building companies, tweets about raising, shipping, product
+  * "developer" - programmers, engineers, code-focused, technical discussions
+  * "creative" - designers, artists, photographers, creative work
+  * "finance" - trading, investing, banking, markets
+  * "influencer" - lifestyle content, brand deals, audience building
+  * "academic" - researchers, professors, intellectual discussions
+  * "artist" - musicians, visual artists, performers
+  * "entrepreneur" - business-focused but not specifically tech
+  * "athlete" - sports, fitness, physical performance
+  * "general" - no clear archetype
+
+- Appearance: Make educated guesses based on name origin, cultural context, and any hints. Use null if truly uncertain.
+- For undertone: warm (golden/yellow), cool (pink/blue), or neutral
+
+Return ONLY valid JSON:
+{
+  "gender": "male" | "female" | "non-binary" | "unknown",
+  "gender_confidence": 0.0-1.0,
+  "age_range": "18-24" | "25-34" | "35-44" | "45-54" | "55+",
+  "profession_archetype": "tech-founder" | "developer" | "creative" | "finance" | "influencer" | "academic" | "artist" | "entrepreneur" | "athlete" | "general",
+  "location_inferred": "City, Country" or null,
+  "inferred_appearance": {
+    "hair_color_guess": "description" or null,
+    "eye_color_guess": "description" or null,
+    "skin_tone_guess": "description" or null,
+    "undertone_guess": "warm" | "cool" | "neutral",
+    "style_era_preference": "modern" | "classic" | "retro" | "futuristic"
+  }
+}`;
+
+    const userPrompt = `Analyze this profile for fashion personalization:
+
+**Handle:** @${profile.handle}
+**Name:** ${profile.name || 'Not provided'}
+**Bio:** ${profile.bio || 'No bio'}
+**Location:** ${profile.location || 'Not provided'}
+**Followers:** ${profile.followers.toLocaleString()}
+
+**Tweets (analyze for gender indicators, profession, interests):**
+${profile.tweets.slice(0, 20).map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+Based on name, bio, writing style, and content, provide demographic analysis.`;
+
+    try {
+      const response = await this.llm(systemPrompt, userPrompt, { json: true, temperature: 0.5 });
+      let jsonStr = response.trim();
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '');
+      }
+      const data = JSON.parse(jsonStr);
+
+      // Validate and normalize
+      const validGenders = ['male', 'female', 'non-binary', 'unknown'];
+      if (!validGenders.includes(data.gender)) {
+        data.gender = 'unknown';
+      }
+
+      const validArchetypes: ProfessionArchetype[] = [
+        'tech-founder', 'developer', 'creative', 'finance', 'influencer',
+        'academic', 'artist', 'entrepreneur', 'athlete', 'general'
+      ];
+      if (!validArchetypes.includes(data.profession_archetype)) {
+        data.profession_archetype = 'general';
+      }
+
+      data.gender_confidence = Math.min(1, Math.max(0, data.gender_confidence || 0.5));
+
+      return { success: true, data };
+    } catch (error) {
+      // Return defaults on error
+      return {
+        success: true,
+        data: {
+          gender: 'unknown',
+          gender_confidence: 0,
+          age_range: '25-34',
+          profession_archetype: 'general',
+          location_inferred: null,
+          inferred_appearance: {
+            hair_color_guess: null,
+            eye_color_guess: null,
+            skin_tone_guess: null,
+            undertone_guess: 'neutral',
+            style_era_preference: 'modern',
+          },
+        },
+      };
     }
   }
 }

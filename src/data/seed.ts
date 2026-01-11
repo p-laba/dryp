@@ -57,10 +57,19 @@ const ARCHETYPES = [
     color_palettes: [['#000000', '#ffffff', '#ff6b35', '#4ecdc4']],
     example_brands: ['Lululemon', 'Nike', 'Alo Yoga', 'Outdoor Voices'],
   },
+  {
+    _id: 'old-money',
+    name: 'Old Money',
+    description: 'Inherited wealth aesthetic. Timeless, expensive-looking without trying.',
+    keywords: ['wealthy', 'refined', 'timeless', 'european', 'inherited', 'effortless'],
+    color_palettes: [['#f5f5dc', '#8b7355', '#1e3a5f', '#ffffff']],
+    example_brands: ['Brunello Cucinelli', 'Loro Piana', 'Ralph Lauren Purple Label', 'Hermès'],
+  },
 ];
 
 const PRODUCTS = [
-  // Techwear
+  // MALE PRODUCTS
+  // Techwear - Male
   {
     _id: 'acronym-j1a',
     name: 'J1A-GTKP Jacket',
@@ -71,6 +80,9 @@ const PRODUCTS = [
     description: 'The iconic Acronym jacket. GORE-TEX Pro, modular design, urban armor.',
     image_url: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400',
     buy_link: 'https://acrnm.com/',
+    gender: 'male',
+    weight: 'medium',
+    colors: ['black', 'gray'],
   },
   {
     _id: 'arcteryx-veilance-blazer',
@@ -82,6 +94,9 @@ const PRODUCTS = [
     description: 'Technical blazer that works in the boardroom and the rain.',
     image_url: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400',
     buy_link: 'https://veilance.com/',
+    gender: 'male',
+    weight: 'medium',
+    colors: ['navy', 'black', 'charcoal'],
   },
   {
     _id: 'nike-acg-pants',
@@ -93,31 +108,54 @@ const PRODUCTS = [
     description: 'Trail-ready cargos with urban appeal. Durable and functional.',
     image_url: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400',
     buy_link: 'https://nike.com/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['black', 'olive', 'khaki'],
   },
-  // Quiet Luxury
+  // Quiet Luxury - Male
   {
-    _id: 'the-row-cashmere',
+    _id: 'cucinelli-cashmere-crew',
     name: 'Cashmere Crew Sweater',
-    brand: 'The Row',
+    brand: 'Brunello Cucinelli',
     category: 'Tops',
     price: 1290,
-    style_archetypes: ['quiet-luxury', 'minimalist'],
-    description: 'Whisper-soft cashmere. No logos, just quality you can feel.',
+    style_archetypes: ['quiet-luxury', 'old-money', 'minimalist'],
+    description: 'Whisper-soft cashmere. The tech founder uniform. No logos, just quality.',
     image_url: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400',
-    buy_link: 'https://therow.com/',
+    buy_link: 'https://brunellocucinelli.com/',
+    gender: 'male',
+    weight: 'medium',
+    colors: ['gray', 'navy', 'cream', 'camel'],
   },
   {
-    _id: 'loro-piana-loafers',
+    _id: 'loro-piana-loafers-m',
     name: 'Summer Walk Loafers',
     brand: 'Loro Piana',
     category: 'Footwear',
     price: 895,
-    style_archetypes: ['quiet-luxury', 'classic-prep'],
+    style_archetypes: ['quiet-luxury', 'old-money', 'classic-prep'],
     description: 'The ultimate quiet flex. IYKYK.',
     image_url: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400',
     buy_link: 'https://loropiana.com/',
+    gender: 'male',
+    weight: 'light',
+    colors: ['tan', 'navy', 'chocolate'],
   },
-  // Streetwear
+  {
+    _id: 'zegna-tshirt',
+    name: 'Premium Cotton T-Shirt',
+    brand: 'Ermenegildo Zegna',
+    category: 'Tops',
+    price: 295,
+    style_archetypes: ['quiet-luxury', 'minimalist', 'old-money'],
+    description: 'The $300 t-shirt that actually feels worth it. Perfect gray.',
+    image_url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
+    buy_link: 'https://zegna.com/',
+    gender: 'male',
+    weight: 'light',
+    colors: ['gray', 'white', 'navy', 'black'],
+  },
+  // Streetwear - Male
   {
     _id: 'supreme-box-logo',
     name: 'Box Logo Hoodie',
@@ -128,6 +166,9 @@ const PRODUCTS = [
     description: 'The grail. Box logo speaks for itself.',
     image_url: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400',
     buy_link: 'https://supremenewyork.com/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['gray', 'black', 'red', 'navy'],
   },
   {
     _id: 'jordan-1-chicago',
@@ -139,6 +180,9 @@ const PRODUCTS = [
     description: 'The most iconic sneaker ever made. Period.',
     image_url: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400',
     buy_link: 'https://nike.com/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['red', 'white', 'black'],
   },
   {
     _id: 'stussy-tee',
@@ -150,8 +194,202 @@ const PRODUCTS = [
     description: 'OG streetwear staple. Simple but unmistakable.',
     image_url: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400',
     buy_link: 'https://stussy.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['white', 'black', 'gray'],
   },
-  // Minimalist
+  // Developer/Comfort - Male
+  {
+    _id: 'patagonia-better-sweater',
+    name: 'Better Sweater Fleece',
+    brand: 'Patagonia',
+    category: 'Tops',
+    price: 139,
+    style_archetypes: ['athleisure', 'minimalist'],
+    description: 'The tech industry uniform. Zoom-call approved.',
+    image_url: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400',
+    buy_link: 'https://patagonia.com/',
+    gender: 'male',
+    weight: 'medium',
+    colors: ['navy', 'gray', 'black', 'green'],
+  },
+  {
+    _id: 'allbirds-wool-runners-m',
+    name: 'Wool Runners',
+    brand: 'Allbirds',
+    category: 'Footwear',
+    price: 98,
+    style_archetypes: ['minimalist', 'athleisure'],
+    description: 'Sustainable comfort. Every developer has a pair.',
+    image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=400',
+    buy_link: 'https://allbirds.com/',
+    gender: 'male',
+    weight: 'light',
+    colors: ['gray', 'black', 'navy'],
+  },
+
+  // FEMALE PRODUCTS
+  // Quiet Luxury - Female
+  {
+    _id: 'the-row-cashmere-f',
+    name: 'Sibem Cashmere Sweater',
+    brand: 'The Row',
+    category: 'Tops',
+    price: 1890,
+    style_archetypes: ['quiet-luxury', 'old-money', 'minimalist'],
+    description: 'Olsen twins approved. The epitome of understated luxury.',
+    image_url: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400',
+    buy_link: 'https://therow.com/',
+    gender: 'female',
+    weight: 'medium',
+    colors: ['ivory', 'camel', 'gray', 'black'],
+  },
+  {
+    _id: 'loro-piana-coat-f',
+    name: 'Cashmere Wrap Coat',
+    brand: 'Loro Piana',
+    category: 'Outerwear',
+    price: 5900,
+    style_archetypes: ['quiet-luxury', 'old-money'],
+    description: 'Investment outerwear. Timeless elegance.',
+    image_url: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400',
+    buy_link: 'https://loropiana.com/',
+    gender: 'female',
+    weight: 'heavy',
+    colors: ['camel', 'ivory', 'gray'],
+  },
+  {
+    _id: 'toteme-blazer-f',
+    name: 'Oversized Blazer',
+    brand: 'Totême',
+    category: 'Outerwear',
+    price: 790,
+    style_archetypes: ['quiet-luxury', 'minimalist', 'old-money'],
+    description: 'Scandinavian quiet luxury. Sharp shoulders, soft power.',
+    image_url: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400',
+    buy_link: 'https://toteme-studio.com/',
+    gender: 'female',
+    weight: 'medium',
+    colors: ['black', 'navy', 'cream'],
+  },
+  // Streetwear/Creative - Female
+  {
+    _id: 'ganni-sweater-f',
+    name: 'Chunky Knit Sweater',
+    brand: 'Ganni',
+    category: 'Tops',
+    price: 425,
+    style_archetypes: ['streetwear', 'avant-garde'],
+    description: 'Copenhagen cool. Playful but polished.',
+    image_url: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400',
+    buy_link: 'https://ganni.com/',
+    gender: 'female',
+    weight: 'medium',
+    colors: ['pink', 'green', 'blue', 'black'],
+  },
+  {
+    _id: 'jacquemus-bag-f',
+    name: 'Le Chiquito Mini Bag',
+    brand: 'Jacquemus',
+    category: 'Accessories',
+    price: 565,
+    style_archetypes: ['streetwear', 'avant-garde'],
+    description: 'The tiny bag that started a movement.',
+    image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400',
+    buy_link: 'https://jacquemus.com/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['white', 'black', 'pink', 'orange'],
+  },
+  {
+    _id: 'new-balance-550-f',
+    name: '550 Sneakers',
+    brand: 'New Balance',
+    category: 'Footwear',
+    price: 130,
+    style_archetypes: ['streetwear', 'minimalist', 'athleisure'],
+    description: 'The sneaker that took over fashion week.',
+    image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=400',
+    buy_link: 'https://newbalance.com/',
+    gender: 'female',
+    weight: 'medium',
+    colors: ['white', 'green', 'navy', 'gray'],
+  },
+  // Minimalist - Female
+  {
+    _id: 'cos-dress-f',
+    name: 'Pleated Midi Dress',
+    brand: 'COS',
+    category: 'Dresses',
+    price: 175,
+    style_archetypes: ['minimalist', 'quiet-luxury'],
+    description: 'Effortless elegance. Works for everything.',
+    image_url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
+    buy_link: 'https://cos.com/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['black', 'navy', 'cream', 'gray'],
+  },
+  {
+    _id: 'everlane-day-heel-f',
+    name: 'The Day Heel',
+    brand: 'Everlane',
+    category: 'Footwear',
+    price: 155,
+    style_archetypes: ['minimalist', 'classic-prep', 'quiet-luxury'],
+    description: 'The comfortable heel that actually exists.',
+    image_url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400',
+    buy_link: 'https://everlane.com/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['black', 'nude', 'burgundy'],
+  },
+  {
+    _id: 'apc-halfmoon-f',
+    name: 'Half-Moon Bag',
+    brand: 'A.P.C.',
+    category: 'Accessories',
+    price: 495,
+    style_archetypes: ['minimalist', 'quiet-luxury'],
+    description: 'French minimalism. Clean, classic, perfect.',
+    image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400',
+    buy_link: 'https://apc.fr/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['black', 'tan', 'chestnut'],
+  },
+  // Athleisure - Female
+  {
+    _id: 'alo-yoga-set-f',
+    name: 'Airlift Leggings',
+    brand: 'Alo Yoga',
+    category: 'Bottoms',
+    price: 118,
+    style_archetypes: ['athleisure', 'minimalist'],
+    description: 'Studio to street. The LA uniform.',
+    image_url: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400',
+    buy_link: 'https://aloyoga.com/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['black', 'gray', 'navy', 'burgundy'],
+  },
+  {
+    _id: 'lululemon-define-f',
+    name: 'Define Jacket',
+    brand: 'Lululemon',
+    category: 'Outerwear',
+    price: 128,
+    style_archetypes: ['athleisure'],
+    description: 'The WFH essential. Flattering on everyone.',
+    image_url: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400',
+    buy_link: 'https://lululemon.com/',
+    gender: 'female',
+    weight: 'light',
+    colors: ['black', 'navy', 'gray', 'burgundy'],
+  },
+
+  // UNISEX PRODUCTS
+  // Minimalist - Unisex
   {
     _id: 'cos-wool-coat',
     name: 'Wool Blend Overcoat',
@@ -162,6 +400,9 @@ const PRODUCTS = [
     description: 'Clean lines, impeccable fit, works with everything.',
     image_url: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400',
     buy_link: 'https://cos.com/',
+    gender: 'unisex',
+    weight: 'heavy',
+    colors: ['black', 'camel', 'gray', 'navy'],
   },
   {
     _id: 'common-projects-achilles',
@@ -173,6 +414,9 @@ const PRODUCTS = [
     description: 'The perfect white sneaker. Gold numbers only.',
     image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400',
     buy_link: 'https://commonprojects.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['white', 'black', 'gray'],
   },
   {
     _id: 'uniqlo-u-tee',
@@ -184,8 +428,11 @@ const PRODUCTS = [
     description: 'Lemaire-designed basics. Best tee for the price.',
     image_url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
     buy_link: 'https://uniqlo.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['white', 'black', 'gray', 'navy', 'olive'],
   },
-  // Avant-Garde
+  // Avant-Garde - Unisex
   {
     _id: 'rick-owens-ramones',
     name: 'Ramones High-Top',
@@ -196,6 +443,9 @@ const PRODUCTS = [
     description: 'Chunky, dark, unmistakably Rick.',
     image_url: 'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400',
     buy_link: 'https://rickowens.eu/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['black', 'white'],
   },
   {
     _id: 'cdg-play-tee',
@@ -207,8 +457,11 @@ const PRODUCTS = [
     description: 'Entry point to CDG. The heart knows.',
     image_url: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400',
     buy_link: 'https://comme-des-garcons.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['white', 'black', 'navy'],
   },
-  // More budget options
+  // Workwear/Streetwear - Unisex
   {
     _id: 'carhartt-wip-jacket',
     name: 'Michigan Chore Coat',
@@ -219,6 +472,9 @@ const PRODUCTS = [
     description: 'Workwear heritage meets streetwear cool.',
     image_url: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400',
     buy_link: 'https://carhartt-wip.com/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['brown', 'black', 'navy', 'beige'],
   },
   {
     _id: 'everlane-chinos',
@@ -230,6 +486,9 @@ const PRODUCTS = [
     description: 'Stretchy, breathable, looks good everywhere.',
     image_url: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400',
     buy_link: 'https://everlane.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['khaki', 'navy', 'black', 'gray'],
   },
   {
     _id: 'new-balance-990',
@@ -241,6 +500,38 @@ const PRODUCTS = [
     description: 'Dad shoe that became a fashion icon. Grey is the new black.',
     image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=400',
     buy_link: 'https://newbalance.com/',
+    gender: 'unisex',
+    weight: 'medium',
+    colors: ['gray', 'navy', 'black'],
+  },
+  // More budget-friendly options
+  {
+    _id: 'muji-linen-shirt',
+    name: 'Organic Linen Shirt',
+    brand: 'Muji',
+    category: 'Tops',
+    price: 50,
+    style_archetypes: ['minimalist', 'quiet-luxury'],
+    description: 'Japanese simplicity. Summer essential.',
+    image_url: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400',
+    buy_link: 'https://muji.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['white', 'navy', 'beige', 'gray'],
+  },
+  {
+    _id: 'uniqlo-ultralight-down',
+    name: 'Ultra Light Down Jacket',
+    brand: 'Uniqlo',
+    category: 'Outerwear',
+    price: 80,
+    style_archetypes: ['minimalist', 'athleisure'],
+    description: 'Packs into itself. The traveler\'s best friend.',
+    image_url: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400',
+    buy_link: 'https://uniqlo.com/',
+    gender: 'unisex',
+    weight: 'light',
+    colors: ['black', 'navy', 'olive', 'wine'],
   },
 ];
 
@@ -251,7 +542,7 @@ export async function seedDatabase(uri: string) {
     await client.connect();
     const db = client.db('drip-agent');
 
-    console.log('🌱 Seeding database...');
+    console.log('Seeding database...');
 
     // Clear existing data
     await db.collection('archetypes').deleteMany({});
@@ -259,13 +550,13 @@ export async function seedDatabase(uri: string) {
 
     // Insert archetypes
     await db.collection('archetypes').insertMany(ARCHETYPES as unknown as Document[]);
-    console.log(`✅ Inserted ${ARCHETYPES.length} archetypes`);
+    console.log(`Inserted ${ARCHETYPES.length} archetypes`);
 
     // Insert products
     await db.collection('products').insertMany(PRODUCTS as unknown as Document[]);
-    console.log(`✅ Inserted ${PRODUCTS.length} products`);
+    console.log(`Inserted ${PRODUCTS.length} products`);
 
-    console.log('\n🎉 Database seeded successfully!');
+    console.log('\nDatabase seeded successfully!');
 
   } finally {
     await client.close();
